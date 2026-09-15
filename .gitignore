@@ -25,3 +25,6 @@ Thumbs.db
 
 # local-only operational notes (tailnet URL/IP, admin-key prefix) - never publish
 LOCAL_SECRETS.md
+
+# session handoff log - owner decision 2026-09-15: stays on this machine, never in the repo
+PROJECT_CONTEXT.md

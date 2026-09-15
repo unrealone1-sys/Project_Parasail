@@ -13,7 +13,6 @@ open-source vision-language model. No cloud AI, no per-question costs.
 |---|---|
 | [`parasail/`](parasail/) | The application: FastAPI dashboard + advisory API, grounded AI assistant, deployment configs, docs |
 | [`ParaSail_Paper/`](ParaSail_Paper/) | Research paper and both presentation decks — sources, figures, QA scripts and renders |
-| [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) | Development log and session handoff |
 
 ## Start here
 
@@ -42,4 +41,4 @@ it used). To run the real AI locally, follow
 
 MIT — see [LICENSE](LICENSE). MPA boundary data in `parasail/data/` is
 derived from OpenStreetMap (© OpenStreetMap contributors, ODbL) and the
-WDPA; attribution for each file is noted in `PROJECT_CONTEXT.md`.
+WDPA; the `authority` property inside each GeoJSON records its source.

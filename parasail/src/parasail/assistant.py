@@ -70,7 +70,15 @@ Hard rules:
    visible; do not guess species or conditions you cannot see clearly.
 6. Keep answers short (under 150 words), plain and fisher-friendly. Explain
    any technical term you must use.
-7. Reply in the requested language."""
+7. Reply in the requested language - the entire answer, every sentence."""
+
+# language names for prompt instructions: small models follow "answer in
+# Malayalam" far more reliably than a bare code like 'ml'
+LANG_NAMES = {
+    "en": "English", "ml": "Malayalam", "ta": "Tamil", "kn": "Kannada",
+    "te": "Telugu", "mr": "Marathi", "gu": "Gujarati", "bn": "Bengali",
+    "or": "Odia", "hi": "Hindi",
+}
 
 
 class AssistantService:
@@ -267,18 +275,21 @@ class AssistantService:
     def _grounded_messages(self, question: str, advisory: dict | None,
                            passages: list[dict], language: str,
                            image: dict | None = None) -> list[dict]:
-        blocks = [f"LANGUAGE: Reply in language code '{language}'.\n"]
+        lang_name = LANG_NAMES.get(language, language)
+        blocks = [f"LANGUAGE: Write your ENTIRE answer in {lang_name} "
+                  f"(code '{language}'). If the code is not 'en', never "
+                  f"answer in English.\n"]
         if advisory:
             blocks.append("ADVISORY DATA (authoritative, do not contradict):\n"
                           + json.dumps(
                               {k: advisory.get(k) for k in (
                                   "class", "score", "components", "observed",
                                   "species", "block_reason", "citation",
-                                  "data_quality")}
+                                  "data_quality", "telemetry")}
                               if advisory.get("allowed") else
                               {k: advisory.get(k) for k in (
                                   "class", "allowed", "block_reason",
-                                  "citation", "species")},
+                                  "citation", "species", "telemetry")},
                               default=str, indent=1) + "\n")
         if passages:
             numbered = "\n".join(
@@ -291,7 +302,9 @@ class AssistantService:
         if image:
             blocks.append(f"An image is attached ({image.get('kind', 'photo')}"
                           "). Describe only what is visible.\n")
-        blocks.append("QUESTION: " + question)
+        blocks.append("QUESTION: " + question + (
+            f"\n(Reminder: your whole answer must be in {lang_name}.)"
+            if language != "en" else ""))
         content = [{"type": "text", "text": "".join(blocks)}]
         if image and image.get("data_base64"):
             content.append({"type": "image_url", "image_url": {
@@ -347,6 +360,21 @@ class AssistantService:
             pass
         return text
 
+    def _ensure_language(self, text: str, language: str) -> str:
+        """Small local models sometimes ignore the language instruction and
+        answer in English anyway. Detect that (pure-ASCII output) and
+        machine-translate through the translation service so the fisher
+        still reads their own language. Output that already contains
+        non-ASCII script obeyed the instruction and is left untouched."""
+        if language == "en" or not text or not text.isascii():
+            return text
+        if self.translation is None:
+            return text
+        try:
+            return self.translation.translate(text, language) or text
+        except Exception:  # noqa: BLE001 - translation is best-effort
+            return text
+
     # ------------------------------------------------------------------ #
     # public API
     # ------------------------------------------------------------------ #
@@ -385,8 +413,9 @@ class AssistantService:
             if not self._check_grounded(answer, passages):
                 log.warning("summary failed grounding check; using template")
                 return None
-            return {"summary": self._enforce_class_consistency(
-                        answer, advisory),
+            return {"summary": self._ensure_language(
+                        self._enforce_class_consistency(answer, advisory),
+                        language),
                     "backend": self.backend_name,
                     "model": self.model_name,
                     "grounded": bool(passages)}
@@ -418,6 +447,12 @@ class AssistantService:
                 details.append(f"wind {o['wind_speed_ms'] * 3.6:.0f} km/h")
             if o.get("wave_height_m") is not None:
                 details.append(f"waves {o['wave_height_m']:.1f} m")
+            t = advisory.get("telemetry") or {}
+            if t.get("wave_period_s") is not None:
+                details.append(f"wave period {t['wave_period_s']:.0f} s")
+            if t.get("ocean_current_velocity_kmh") is not None:
+                details.append(
+                    f"currents {t['ocean_current_velocity_kmh']:.1f} km/h")
             species = advisory.get("species", {}).get("common") or "your target"
             text = (f"{CLASS_WORDS.get(advisory['class'], advisory['class'])} - "
                     f"{weather} ({', '.join(details) or 'conditions measured at sea'})"
@@ -467,7 +502,8 @@ class AssistantService:
                 self._template_answer(question, advisory, passages), language)
 
         return {
-            "answer": self._enforce_class_consistency(answer, advisory),
+            "answer": self._ensure_language(
+                self._enforce_class_consistency(answer, advisory), language),
             "backend": backend,
             "model": self.model_name if backend != "template"
                      else "deterministic-template",

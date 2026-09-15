@@ -126,51 +126,66 @@ class OpenMeteoSource:
         return best_i
 
     def fetch_points(self, points: list[tuple[float, float]],
-                     hours: int = 24) -> dict[tuple[float, float], dict]:
+                     hours: int = 24,
+                     groups: tuple = ("core_weather", "ext_weather",
+                                      "core_marine", "ext_marine")
+                     ) -> dict[tuple[float, float], dict]:
         """Batched current-conditions fetch for a grid of points.
 
         Open-Meteo accepts comma-separated coordinate lists and answers with
         one payload per point, so a whole suggestion grid costs a handful of
-        HTTP calls. Values are taken at the hour closest to now. Each
-        variable group (core weather / extended weather / core marine /
-        extended marine) degrades independently.
+        HTTP calls; large grids are chunked to keep request URLs sane.
+        `groups` selects which variable groups are fetched (the suggestion
+        layer needs only the two core groups). Values are taken at the hour
+        closest to now. Each variable group degrades independently.
         """
         if not points:
             return {}
-        lats = ",".join(f"{p[0]:.4f}" for p in points)
-        lons = ",".join(f"{p[1]:.4f}" for p in points)
+        available = {
+            "core_weather": (f"{self.base}/forecast", self.CORE_WEATHER),
+            "ext_weather": (f"{self.base}/forecast", self.EXT_WEATHER),
+            "core_marine": (f"{self.marine_base}/marine", self.CORE_MARINE),
+            "ext_marine": (f"{self.marine_base}/marine", self.EXT_MARINE),
+        }
         out: dict[tuple[float, float], dict] = {p: {} for p in points}
-        for endpoint, variables in (
-            (f"{self.base}/forecast", self.CORE_WEATHER),
-            (f"{self.base}/forecast", self.EXT_WEATHER),
-            (f"{self.marine_base}/marine", self.CORE_MARINE),
-            (f"{self.marine_base}/marine", self.EXT_MARINE),
-        ):
-            try:
-                payload, age, cached = self.fetcher.fetch(
-                    endpoint,
-                    {
-                        "latitude": lats, "longitude": lons,
-                        "hourly": ",".join(variables),
-                        "forecast_days": max(1, hours // 24 + 1),
-                        "timezone": "UTC",
-                    },
-                )
-            except Exception as exc:  # noqa: BLE001
-                log.warning("open-meteo %s unavailable (%s); continuing "
-                            "without %s", endpoint, exc, ",".join(variables))
-                continue
-            entries = payload if isinstance(payload, list) else [payload]
-            for point, entry in zip(points, entries):
-                hourly = entry.get("hourly", {})
-                idx = self._nearest_now_index(hourly.get("time", []))
-                for var in variables:
-                    values = hourly.get(var, [])
-                    value = (values[idx] if idx < len(values)
-                             and values[idx] is not None
-                             else next((v for v in values if v is not None), None))
-                    if value is not None:
-                        out[point][var] = float(value)
+        CHUNK = 100
+        for start in range(0, len(points), CHUNK):
+            chunk = points[start:start + CHUNK]
+            lats = ",".join(f"{p[0]:.4f}" for p in chunk)
+            lons = ",".join(f"{p[1]:.4f}" for p in chunk)
+            for name in groups:
+                endpoint, variables = available[name]
+                try:
+                    payload, age, cached = self.fetcher.fetch(
+                        endpoint,
+                        {
+                            "latitude": lats, "longitude": lons,
+                            "hourly": ",".join(variables),
+                            "forecast_days": max(1, hours // 24 + 1),
+                            "timezone": "UTC",
+                        },
+                    )
+                except Exception as exc:  # noqa: BLE001
+                    log.warning("open-meteo %s unavailable (%s); continuing "
+                                "without %s", endpoint, exc,
+                                ",".join(variables))
+                    continue
+                entries = payload if isinstance(payload, list) else [payload]
+                for point, entry in zip(chunk, entries):
+                    if entry.get("elevation") is not None:
+                        # terrain height (0 over open water): the suggestion
+                        # layer uses it to keep fish zones off the mainland
+                        out[point].setdefault("elevation",
+                                              float(entry["elevation"]))
+                    hourly = entry.get("hourly", {})
+                    idx = self._nearest_now_index(hourly.get("time", []))
+                    for var in variables:
+                        values = hourly.get(var, [])
+                        value = (values[idx] if idx < len(values)
+                                 and values[idx] is not None
+                                 else next((v for v in values if v is not None), None))
+                        if value is not None:
+                            out[point][var] = float(value)
         return out
 
     def fetch_point(self, lat: float, lon: float,

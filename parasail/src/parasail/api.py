@@ -746,6 +746,11 @@ async function refreshTelemetry(){
 async function getAdvice(){
  const btn=document.getElementById('go');
  setText(btn,'Checking the sea...');btn.disabled=true;
+ /* telemetry FIRST: the live-conditions card updates before the verdict
+    and the AI summary appear, and the assistant is fed the same station
+    data server-side (advisory.telemetry) - what you see is what it
+    analysed */
+ try{await refreshTelemetry();}catch(e){}
  const start=document.getElementById('date').value+'T05:00:00Z';
  const species=document.getElementById('species').value;
  const body={lat:state.lat,lon:state.lon,species:species,start:start,hours:24,language:LANG};
@@ -762,7 +767,6 @@ async function getAdvice(){
  }catch(e){showError('could not reach the service: '+e);}
  renderSpots(results[1].status==='fulfilled'?results[1].value:null);
  renderAiSummary(results[2].status==='fulfilled'?results[2].value:null);
- refreshTelemetry();
  if(LANG!=='en')applyLanguage(false);
  btn.disabled=false;setText(btn,'Get my advice');
 }
@@ -981,14 +985,26 @@ function renderSpots(s){
   'Likely spots - '+(localNameFor(document.getElementById('species').value)||s.common_name));
  markTr(document.getElementById('spots_note'),s.note);
  const row=document.getElementById('spotrow');row.innerHTML='';
+ /* Likely-fish PERIMETER: drawn like the MPA zones (border + translucent
+    fill + dashed outline), teal instead of coral. Replaces the old dots. */
+ if(spotLayer&&typeof L!=='undefined'&&s.zone){
+  L.geoJSON(s.zone,{style:{color:'#2F9E8F',weight:2,fillColor:'#2F9E8F',fillOpacity:.18,dashArray:'5 4'},
+   onEachFeature:function(f,lyr){
+    lyr.bindPopup('<b>Likely area</b> - '+(localNameFor(document.getElementById('species').value)||s.common_name)
+     +'<br>live sea-temperature match \u2265 '+(s.zone_threshold!=null?(s.zone_threshold*100).toFixed(0):50)+'%'
+     +'<br>'+(s.zone_cells||0)+' sea cells \u00B7 indicative hint, not a trained prediction');
+    lyr.bindTooltip('likely fish area',{sticky:true});
+   }}).addTo(spotLayer);
+ }
  s.suggestions.forEach(function(sp,i){
   const suit=sp.suitability!=null?sp.suitability:0;
   const col=suit>=0.66?'#4C9A57':(suit>=0.33?'#D9A62E':'#D97E35');
   const dist=sp.distance_km<1.5?'right at your location':sp.distance_km+' km '+sp.bearing+' of you';
   const lm=sp.landmark?('near '+sp.landmark+(sp.landmark_distance_km!=null?' ('+sp.landmark_distance_km+' km '+sp.landmark_direction+')':'')):'';
+  /* specific spot dots ride along with the perimeter zone */
   var mk=null;
   if(spotLayer&&typeof L!=='undefined'){
-   mk=L.circleMarker([sp.lat,sp.lon],{radius:8+8*suit,color:'#fff',weight:2,fillColor:col,fillOpacity:.92}).addTo(spotLayer)
+   mk=L.circleMarker([sp.lat,sp.lon],{radius:6+6*suit,color:'#fff',weight:2,fillColor:col,fillOpacity:.95}).addTo(spotLayer)
     .bindPopup('<b>'+dist+'</b><br>'+(lm?lm+'<br>':'')+'Sea '+(sp.sst_c!=null?sp.sst_c+'\u00B0C':'-')+' \u00B7 match '+(suit*100).toFixed(0)+'%');
    spotMarkers.push(mk);
   }
@@ -1021,6 +1037,35 @@ function showError(msg){
  document.getElementById('raw').textContent='';
 }
 </script></body></html>"""
+
+
+def _telemetry_snapshot(eng, lat: float, lon: float) -> dict:
+    """Compact live-conditions block (the GET /telemetry parameter set)
+    attached to advisories so the AI assistant analyses the FULL station
+    data - pressure, humidity, wave period, currents - not just the
+    scoring inputs. None values are dropped to keep prompts lean."""
+    data = eng.ingestion.open_meteo.fetch_points([(lat, lon)], hours=24)
+    env = data.get((lat, lon), {})
+
+    def rnd(key: str, digits: int = 1):
+        v = env.get(key)
+        return round(v, digits) if v is not None else None
+
+    snapshot = {
+        "wind_speed_ms": env.get("wind_speed_10m"),
+        "wind_gusts_ms": env.get("wind_gusts_10m"),
+        "wind_direction_deg": rnd("wind_direction_10m", 0),
+        "surface_pressure_hpa": rnd("surface_pressure"),
+        "air_temperature_c": rnd("temperature_2m"),
+        "relative_humidity_pct": rnd("relative_humidity_2m", 0),
+        "sea_surface_temperature_c": rnd("sea_surface_temperature"),
+        "wave_height_m": rnd("wave_height", 2),
+        "wave_period_s": rnd("wave_period"),
+        "wave_direction_deg": rnd("wave_direction", 0),
+        "ocean_current_velocity_kmh": rnd("ocean_current_velocity", 2),
+        "ocean_current_direction_deg": rnd("ocean_current_direction", 0),
+    }
+    return {k: v for k, v in snapshot.items() if v is not None}
 
 
 def _station_status(cfg) -> dict:
@@ -1162,6 +1207,10 @@ def create_app(cfg: Config | None = None) -> FastAPI:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
         advisory["problem_answer"] = _problem_answer_for(
             advisory, req.language, translations)
+        # full live telemetry rides along so the active AI model analyses
+        # the complete station parameter set, not just the scoring inputs
+        advisory["telemetry"] = _telemetry_snapshot(
+            engine(), req.lat, req.lon)
         return {"advisory": advisory,
                 "summary": assistant().summarize_advisory(
                     advisory, req.language)}
@@ -1180,6 +1229,9 @@ def create_app(cfg: Config | None = None) -> FastAPI:
             except ValueError as exc:
                 raise HTTPException(status_code=422,
                                     detail=str(exc)) from exc
+        if advisory is not None:
+            advisory["telemetry"] = _telemetry_snapshot(
+                engine(), req.lat, req.lon)
         return assistant().answer_question(
             req.question, language=req.language, advisory=advisory,
             species=req.species, lat=req.lat, lon=req.lon, when=req.start)

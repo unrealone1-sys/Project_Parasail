@@ -38,7 +38,7 @@ services:
     image: vllm/vllm-openai:latest
     profiles: ["gpu"]
     command: >
-      --model Qwen/Qwen2.5-VL-7B-Instruct-AWQ
+      --model Qwen/Qwen2.5-VL-7B-Instruct-AWQ 
       --served-model-name Qwen/Qwen2.5-VL-7B-Instruct-AWQ
       --quantization awq
       --max-model-len 16384

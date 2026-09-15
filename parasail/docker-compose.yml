@@ -1,0 +1,93 @@
+# ParaSail - configuration-driven deployment.
+# Region, species, closures, models and score weights all come from config.yaml.
+#
+# The AI assistant is SELF-HOSTED: `docker compose --profile gpu up` starts a
+# local vLLM server running Qwen2.5-VL-7B-Instruct-AWQ (Apache-2.0, ~6.9 GB
+# 4-bit weights; full serving footprint fits an 8-12 GB VRAM budget). No
+# external AI API is called, so request volume never creates per-token costs.
+# Without the gpu profile the API still serves the website using the
+# deterministic template assistant (CPU-only, zero cost).
+# Hardware guidance: docs/PRODUCTION_HARDWARE.md
+
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: parasail
+      POSTGRES_PASSWORD: parasail
+      POSTGRES_DB: parasail
+    ports: ["5432:5432"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U parasail"]
+      interval: 5s
+      retries: 10
+
+  qdrant:
+    image: qdrant/qdrant:v1.9.7
+    ports: ["6333:6333", "6334:6334"]
+    volumes:
+      - qdrantdata:/qdrant/storage
+
+  # Local vision-language model server (openai-compatible API on :8001).
+  # Requires the NVIDIA container toolkit; see docs/PRODUCTION_HARDWARE.md
+  # for VRAM budgets, throughput tuning and replica scaling.
+  vllm:
+    image: vllm/vllm-openai:latest
+    profiles: ["gpu"]
+    command: >
+      --model Qwen/Qwen2.5-VL-7B-Instruct-AWQ
+      --served-model-name Qwen/Qwen2.5-VL-7B-Instruct-AWQ
+      --quantization awq
+      --max-model-len 16384
+      --max-num-seqs 32
+      --gpu-memory-utilization 0.90
+      --port 8001
+    environment:
+      HF_HUB_ENABLE_HF_TRANSFER: "1"
+    volumes:
+      - hfcache:/root/.cache/huggingface
+    ports: ["8001:8001"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  # Lighter local fallback (pulls qwen2.5vl:7b, Q4, ~5-6 GB VRAM).
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["ollama"]
+    volumes:
+      - ollamadata:/root/.ollama
+    ports: ["11434:11434"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  api:
+    build: .
+    command: uvicorn parasail.api:app --host 0.0.0.0 --port 8000
+    environment:
+      PARASAIL_CONFIG: /app/config.yaml
+      PARASAIL_QDRANT_URL: http://qdrant:6333
+      PARASAIL_DATABASE_URL: postgresql+psycopg://parasail:parasail@db:5432/parasail
+      PARASAIL_VLLM_URL: http://vllm:8001/v1
+    ports: ["8000:8000"]
+    depends_on:
+      db: {condition: service_healthy}
+      qdrant: {condition: service_started}
+
+volumes:
+  pgdata:
+  qdrantdata:
+  hfcache:
+  ollamadata:

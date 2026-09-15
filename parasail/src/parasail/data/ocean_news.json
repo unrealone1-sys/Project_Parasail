@@ -1,0 +1,85 @@
+{
+  "note": "Seeded regional ocean news corpus for the ParaSail dashboard. Items originate in several languages (origin_language); the /news endpoint translates every item into the reader's selected language. Thematic items attributed to the organisations' ongoing programs - operators should replace or augment this file with their own regional items (or wire a live feed) per deployment; keep the same schema.",
+  "schema": {
+    "id": "unique slug",
+    "region": "display region",
+    "origin_language": "ISO code the title/summary are written in",
+    "source": "attributed organisation/service",
+    "title": "headline in the origin language",
+    "summary": "2-3 sentence summary in the origin language",
+    "title_en": "reference English edition (translation pivot)",
+    "summary_en": "reference English edition (translation pivot)"
+  },
+  "items": [
+    {
+      "id": "kerala-monsoon-closure",
+      "region": "Kerala, India",
+      "origin_language": "ml",
+      "source": "ICAR-CMFRI",
+      "title": "മൺസൂൺ മീൻപിടി നിരോധനം: കടലിന് വിശ്രമം, മൽസ്യസമ്പത്തിന് പുത്തൻ ജീവൻ",
+      "summary": "കേരളത്തിലെ വാർഷിക മൺസൂൺ മീൻപിടി നിരോധന കാലയളവിൽ മത്സ്യ പ്രജനനം സംരക്ഷിക്കപ്പെടുന്നു. ഐ.സി.എ.ആർ - സി.എം.എഫ്.ആർ.ഐ നിരോധനത്തിനു ശേഷമുള്ള മൽസ്യ ഇറക്കുമതി നിരന്തരം നിരീക്ഷിക്കുകയും മീൻപിടുക്കാരോട് കാലാവസ്ഥാ മുന്നറിയിപ്പുകൾ പാലിക്കാൻ ആവശ്യപ്പെടുകയും ചെയ്യുന്നു.",
+      "title_en": "Monsoon fishing ban: rest for the sea, new life for the fishery",
+      "summary_en": "During Kerala's annual monsoon fishing closure, fish spawning is protected. ICAR-CMFRI continuously monitors landings after the ban and asks fishers to follow weather warnings."
+    },
+    {
+      "id": "gulf-of-mannar-conservation",
+      "region": "Tamil Nadu, India",
+      "origin_language": "ta",
+      "source": "Gulf of Mannar Biosphere Reserve",
+      "title": "வளைகுடா மன்னாரில் பவளப்பாறைகள் மற்றும் கடல் புற்கள் பாதுகாப்பு பணி வலுவடைகிறது",
+      "summary": "வளைகுடா மன்னார் உயிர்க்கோள காப்பகத்தில் பவளப்பாறைகள், கடல் புற்கள் மற்றும் ஆமைகளின் வாழ்விடங்களை மீட்டெடுக்கும் பணிகள் தொடர்கின்றன. உள்ளூர் மீனவர் சங்கங்களுடன் இணைந்து நிலையான மீன்பிடி முறைகள் ஊக்குவிக்கப்படுகின்றன.",
+      "title_en": "Coral reefs and seagrass protection gains strength in the Gulf of Mannar",
+      "summary_en": "In the Gulf of Mannar Biosphere Reserve, work continues to restore coral reefs, seagrass beds and turtle habitats. Sustainable fishing practices are being promoted together with local fisher associations."
+    },
+    {
+      "id": "sundarbans-mangroves",
+      "region": "West Bengal, India",
+      "origin_language": "hi",
+      "source": "National Mangrove Initiative",
+      "title": "सुंदरबन में मैंग्रोव पुनर्स्थापन: तटीय सुरक्षा की मज़बूत दीवार",
+      "summary": "सुंदरबन के मैंग्रोव जंगल तटीय गांवों को तूफानों से बचाते हैं और मछलियों के प्रजनन क्षेत्र के रूप में काम करते हैं। पुनर्स्थापन कार्यक्रमों में स्थानीय मछुआरा समुदायों को नर्सरी और रोपण में भागीदारी के लिए प्रोत्साहित किया जा रहा है।",
+      "title_en": "Mangrove restoration in the Sundarbans: a strong wall of coastal protection",
+      "summary_en": "The Sundarbans mangrove forests shield coastal villages from storms and serve as fish breeding grounds. Restoration programmes are encouraging local fishing communities to take part in nurseries and plantation work."
+    },
+    {
+      "id": "incois-pfz-advisories",
+      "region": "India",
+      "origin_language": "en",
+      "source": "INCOIS",
+      "title": "Satellite fishing-zone advisories reach more small-scale fishers",
+      "summary": "The Indian National Centre for Ocean Information Services continues to issue Potential Fishing Zone advisories derived from sea-surface-temperature and chlorophyll fronts. Delivery over mobile phones has widened reach among small-scale fishers, helping cut search time and fuel spend."
+    },
+    {
+      "id": "iotc-tuna-management",
+      "region": "Indian Ocean",
+      "origin_language": "en",
+      "source": "IOTC",
+      "title": "Indian Ocean tuna stocks under continued management review",
+      "summary": "The Indian Ocean Tuna Commission's scientific committees keep assessing yellowfin, skipjack and bigeye stocks as fishing pressure and market demand grow. Management measures and catch limits are reviewed against the latest stock assessments, with coastal-state livelihoods a standing concern."
+    },
+    {
+      "id": "global-ocean-heat",
+      "region": "Global",
+      "origin_language": "en",
+      "source": "NOAA / WMO",
+      "title": "Ocean heat content keeps climbing, scientists warn",
+      "summary": "Global ocean heat content continues its long-term rise, driving marine heatwaves, coral stress and shifts in fish distributions. Monitoring agencies emphasise that coastal communities depending on small pelagic fisheries are among the first to feel the effects."
+    },
+    {
+      "id": "global-plastics-treaty",
+      "region": "Global",
+      "origin_language": "en",
+      "source": "UNEP",
+      "title": "Global plastics treaty talks continue to protect the ocean",
+      "summary": "Negotiations toward a legally binding global plastics agreement continue, with marine pollution at the centre. Roughly eleven million tonnes of plastic still enter the ocean every year, and coastal fisheries report growing amounts of debris in nets and gear."
+    },
+    {
+      "id": "fao-small-scale-fisheries",
+      "region": "Global",
+      "origin_language": "en",
+      "source": "FAO",
+      "title": "Small-scale fisheries gain recognition in food-security policy",
+      "summary": "Global assessments continue to highlight that small-scale fisheries supply a large share of fish consumed in developing regions and support hundreds of millions of livelihoods. Voluntary guidelines push for secure tenure, social protection and market access for small-scale fishers."
+    }
+  ]
+}

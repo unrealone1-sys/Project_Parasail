@@ -1,0 +1,6 @@
+# bundled AI model weights (~3 GB; rebuild offline via scripts/export_model.py)
+/models/
+/.cache/
+
+# local runtime state
+*.log

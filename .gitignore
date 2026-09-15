@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# virtual environments
+.venv/
+
+# Node (ParaSail_Paper build tooling)
+node_modules/
+
+# bundled AI model weights (~3 GB) - see parasail/scripts/export_model.py
+/parasail/models/
+
+# runtime caches (weather, translations, assistant model selection)
+/parasail/.cache/
+
+# Python build artifacts
+*.egg-info/
+
+# editor / OS junk
+~$*
+Thumbs.db
+.DS_Store
+
+# local-only operational notes (tailnet URL/IP, admin-key prefix) - never publish
+LOCAL_SECRETS.md

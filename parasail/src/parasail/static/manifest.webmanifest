@@ -1,0 +1,18 @@
+{
+  "name": "ParaSail - fishing advisory",
+  "short_name": "ParaSail",
+  "description": "Safe, legal and sustainable fishing advisories with a grounded AI assistant - weather, fish, closures and local knowledge in plain language.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0A2E3C",
+  "theme_color": "#0A2E3C",
+  "lang": "en",
+  "categories": ["weather", "productivity", "utilities"],
+  "icons": [
+    { "src": "/static/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/static/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/static/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

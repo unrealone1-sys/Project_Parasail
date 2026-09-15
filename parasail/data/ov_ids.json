@@ -1,0 +1,153 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62.4 2390de5a",
+  "osm3s": {
+    "timestamp_osm_base": "2026-09-13T14:31:36Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+
+{
+  "type": "way",
+  "id": 86140211,
+  "tags": {
+    "boundary": "protected_area",
+    "name": "Chilikha (Nalabana) WLS",
+    "natural": "wetland",
+    "protect_class": "4",
+    "wikidata": "Q15650265",
+    "wikipedia": "en:Nalbana Bird Sanctuary"
+  }
+},
+{
+  "type": "way",
+  "id": 669220103,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Kachchh Desert WLS",
+    "name:ar": "محمية كوتش الصحراوية للحياة البرية",
+    "name:hi": "कच्छ रेगिस्तान वन्यजीव अभयारण्य",
+    "protect_class": "4",
+    "wikidata": "Q17068229",
+    "wikipedia": "en:Kutch Desert Wildlife Sanctuary"
+  }
+},
+{
+  "type": "way",
+  "id": 669652446,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Gahirmatha (Marine) WLS",
+    "protect_class": "4",
+    "wikidata": "Q22031428",
+    "wikipedia": "en:Gahirmatha Marine Sanctuary"
+  }
+},
+{
+  "type": "way",
+  "id": 669656035,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Bhitarkanika WLS",
+    "protect_class": "4"
+  }
+},
+{
+  "type": "way",
+  "id": 671269863,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Point Calimere WLS",
+    "protect_class": "4",
+    "wikidata": "Q5614058"
+  }
+},
+{
+  "type": "way",
+  "id": 677910591,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Pitti WLS (Bird)",
+    "protect_class": "4"
+  }
+},
+{
+  "type": "way",
+  "id": 678002187,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Malvan Marine Sanctuary",
+    "protect_class": "4",
+    "source": "https://www.icsf.net/wp-content/uploads/2021/02/138_malvan_marine_sanctuary__notification_dated_13th_april_1987.pdf",
+    "wikidata": "Q13119963"
+  }
+},
+{
+  "type": "way",
+  "id": 1550874859,
+  "tags": {
+    "boundary": "protected_area",
+    "name": "Marine National Park"
+  }
+},
+{
+  "type": "relation",
+  "id": 8334753,
+  "tags": {
+    "boundary": "national_park",
+    "leisure": "nature_reserve",
+    "name": "Marine (Gulf of Kachchh) National Park",
+    "name:hi": "समुद्री (कच्छ की खाड़ी) राष्ट्रीय उद्यान",
+    "protect_class": "2",
+    "source": "https://www.indiawildliferesorts.com/images/marine-national-park-map.jpg",
+    "type": "boundary",
+    "wikidata": "Q2724481"
+  }
+},
+{
+  "type": "relation",
+  "id": 14697187,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Coringa WLS",
+    "natural": "wetland",
+    "protect_class": "4",
+    "type": "multipolygon",
+    "wetland": "mangrove",
+    "wikidata": "Q5170559"
+  }
+},
+{
+  "type": "relation",
+  "id": 15073373,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Thane Creek Flamingo Sanctuary",
+    "name:mr": "ठाणे रोहित अभयारण्य",
+    "note": "check mapping",
+    "protect_class": "4",
+    "source": "https://mangroves.maharashtra.gov.in/Site/SiteInfo/Pdf/TCFS-RMP.pdf",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 21253238,
+  "tags": {
+    "boundary": "protected_area",
+    "name": "Marine National Park",
+    "protect_class": "3",
+    "type": "boundary"
+  }
+}
+
+  ]
+}

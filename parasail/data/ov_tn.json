@@ -1,0 +1,1141 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62.11 87bfad18",
+  "osm3s": {
+    "timestamp_osm_base": "2026-07-24T11:04:51Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+
+{
+  "type": "way",
+  "id": 51830755,
+  "tags": {
+    "boundary": "protected_area",
+    "name": "Periyar WLS Tiger Reserve",
+    "name:ml": "പെരിയാര് കടുവ സംരക്ഷിത പ്രദേശം",
+    "protect_class": "4",
+    "wikidata": "Q548153",
+    "wikimedia_commons": "Category:Periyar National Park",
+    "wikipedia": "en:Periyar National Park"
+  }
+},
+{
+  "type": "way",
+  "id": 165070558,
+  "tags": {
+    "boundary": "protected_area",
+    "name": "Vaduvoor WLS",
+    "natural": "wetland",
+    "protect_class": "4",
+    "wikidata": "Q7908370",
+    "wikipedia": "en:Vaduvoor Bird Sanctuary"
+  }
+},
+{
+  "type": "way",
+  "id": 193362230,
+  "tags": {
+    "boundary": "protected_area"
+  }
+},
+{
+  "type": "way",
+  "id": 193362232,
+  "tags": {
+    "boundary": "protected_area"
+  }
+},
+{
+  "type": "way",
+  "id": 193362243,
+  "tags": {
+    "boundary": "protected_area"
+  }
+},
+{
+  "type": "way",
+  "id": 194947949,
+  "tags": {
+    "boundary": "protected_area"
+  }
+},
+{
+  "type": "way",
+  "id": 314613662,
+  "tags": {
+    "boundary": "protected_area",
+    "name": "Lunuwila Coconut Research Institute."
+  }
+},
+{
+  "type": "way",
+  "id": 519016201,
+  "tags": {
+    "boundary": "protected_area",
+    "landuse": "forest",
+    "leisure": "nature_reserve",
+    "name": "Pallekele Reserved Forest",
+    "natural": "wood",
+    "start_date": "1896"
+  }
+},
+{
+  "type": "way",
+  "id": 531627418,
+  "tags": {
+    "boundary": "protected_area"
+  }
+},
+{
+  "type": "way",
+  "id": 531627419,
+  "tags": {
+    "leisure": "nature_reserve",
+    "name": "Ranmasu Uyana"
+  }
+},
+{
+  "type": "way",
+  "id": 544945926,
+  "tags": {
+    "boundary": "protected_area",
+    "protection_title": "canal reservation"
+  }
+},
+{
+  "type": "way",
+  "id": 544947473,
+  "tags": {
+    "boundary": "protected_area",
+    "protection_title": "canel reservation"
+  }
+},
+{
+  "type": "way",
+  "id": 549266622,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "protection_title": "reservation"
+  }
+},
+{
+  "type": "way",
+  "id": 549266632,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "protection_title": "reservation"
+  }
+},
+{
+  "type": "way",
+  "id": 550817807,
+  "tags": {
+    "boundary": "protected_area"
+  }
+},
+{
+  "type": "way",
+  "id": 550996891,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve"
+  }
+},
+{
+  "type": "way",
+  "id": 551031968,
+  "tags": {
+    "boundary": "protected_area"
+  }
+},
+{
+  "type": "way",
+  "id": 552034526,
+  "tags": {
+    "boundary": "protected_area"
+  }
+},
+{
+  "type": "way",
+  "id": 553418878,
+  "tags": {
+    "boundary": "protected_area"
+  }
+},
+{
+  "type": "way",
+  "id": 553418879,
+  "tags": {
+    "boundary": "protected_area"
+  }
+},
+{
+  "type": "way",
+  "id": 553683929,
+  "tags": {
+    "boundary": "protected_area"
+  }
+},
+{
+  "type": "way",
+  "id": 554216871,
+  "tags": {
+    "boundary": "protected_area"
+  }
+},
+{
+  "type": "way",
+  "id": 561139964,
+  "tags": {
+    "boundary": "protected_area"
+  }
+},
+{
+  "type": "way",
+  "id": 645607775,
+  "tags": {
+    "leisure": "nature_reserve"
+  }
+},
+{
+  "type": "way",
+  "id": 666719511,
+  "tags": {
+    "boundary": "national_park",
+    "leisure": "nature_reserve",
+    "name": "Mathikettan Shola National Park",
+    "name:ml": "മതികെട്ടാൻ ചോല ദേശീയോദ്യാനം",
+    "name:ta": "மதிகெட்டான் சோலை தேசியப் பூங்கா",
+    "protect_class": "2",
+    "wikidata": "Q3091867",
+    "wikimedia_commons": "Category:Mathikettan Shola National Park",
+    "wikipedia": "en:Mathikettan Shola National Park"
+  }
+},
+{
+  "type": "way",
+  "id": 671122257,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Chitrangudi Bird WLS",
+    "protect_class": "4",
+    "wikidata": "Q5102342",
+    "wikipedia": "en:Chitrangudi Bird Sanctuary"
+  }
+},
+{
+  "type": "way",
+  "id": 671123410,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Karaivetti Bird WLS",
+    "natural": "wetland",
+    "protect_class": "4",
+    "wikidata": "Q13111039",
+    "wikipedia": "en:Karaivetti Bird Sanctuary"
+  }
+},
+{
+  "type": "way",
+  "id": 671199074,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Udhayamarthandapuram Lake WLS",
+    "protect_class": "4",
+    "wikidata": "Q7877004",
+    "wikipedia": "en:Udayamarthandapuram Bird Sanctuary"
+  }
+},
+{
+  "type": "way",
+  "id": 671201903,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Therthangal WLS",
+    "protect_class": "4",
+    "wikidata": "Q135622710",
+    "wikipedia": "en:Therthangal Bird Sanctuary"
+  }
+},
+{
+  "type": "way",
+  "id": 671203113,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Sakkarakottai Bird WLS",
+    "protect_class": "4",
+    "wikidata": "Q135622961",
+    "wikipedia": "en:Sakkarakottai Bird Sanctuary"
+  }
+},
+{
+  "type": "way",
+  "id": 671205635,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Srivilliputhur Grizzled Squirrel Wildlife Sanctuary",
+    "name:ta": "ஸ்ரீவில்லிபுத்தூர் வனவிலங்கு சரணாலயம்",
+    "protect_class": "4",
+    "wikidata": "Q5609778",
+    "wikipedia": "en:Grizzled Squirrel Wildlife Sanctuary"
+  }
+},
+{
+  "type": "way",
+  "id": 671207570,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Kanjirankulam Birds WLS",
+    "protect_class": "4",
+    "wikidata": "Q15233552",
+    "wikipedia": "en:Kanjirankulam Bird Sanctuary"
+  }
+},
+{
+  "type": "way",
+  "id": 671212129,
+  "tags": {
+    "boundary": "protected_area",
+    "landuse": "forest",
+    "name": "Vallanadu Blackbuck WLS",
+    "protect_class": "4",
+    "wikidata": "Q12988826",
+    "wikimedia_commons": "Category:Vallanadu Wildlife Sanctuary",
+    "wikipedia": "en:Vallanadu Wildlife Sanctuary"
+  }
+},
+{
+  "type": "way",
+  "id": 671213413,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Melaselvanoor - Keelaselvanoor Bird WLS",
+    "natural": "wetland",
+    "protect_class": "4",
+    "source:wetland": "Maxar",
+    "wikidata": "Q122363291",
+    "wikipedia": "en:Melaselvanur-Kilaselvanur Bird Sanctuary"
+  }
+},
+{
+  "type": "way",
+  "id": 671268852,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Gangaikondan spotted Deer WLS",
+    "protect_class": "4",
+    "wikidata": "Q122363292",
+    "wikipedia": "en:Gangaikondan Spotted Deer Sanctuary"
+  }
+},
+{
+  "type": "way",
+  "id": 671269863,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Point Calimere WLS",
+    "protect_class": "4",
+    "wikidata": "Q5614058"
+  }
+},
+{
+  "type": "way",
+  "id": 677289011,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Thattekad Bird Sanctuary",
+    "natural": "wood",
+    "protect_class": "4",
+    "wikidata": "Q6772512",
+    "wikipedia": "en:Thattekad Bird Sanctuary"
+  }
+},
+{
+  "type": "way",
+  "id": 681439743,
+  "tags": {
+    "boundary": "national_park",
+    "leisure": "nature_reserve",
+    "name": "Periyar National Park & Tiger Reserve",
+    "name:ml": "പെരിയാർ ദേശീയോദ്യാനം & കടുവാ സംരക്ഷണ കേന്ദ്രം",
+    "name:ta": "பெரியார் தேசியப் பூங்கா மற்றும் புலிகள் காப்பகம்",
+    "protect_class": "2",
+    "wikidata": "Q548153",
+    "wikimedia_commons": "Category:Periyar National Park",
+    "wikipedia": "en:Periyar National Park"
+  }
+},
+{
+  "type": "way",
+  "id": 799399275,
+  "tags": {
+    "leisure": "nature_reserve",
+    "name": "ground"
+  }
+},
+{
+  "type": "way",
+  "id": 799399296,
+  "tags": {
+    "leisure": "nature_reserve"
+  }
+},
+{
+  "type": "way",
+  "id": 799424815,
+  "tags": {
+    "leisure": "nature_reserve",
+    "name": "ground"
+  }
+},
+{
+  "type": "way",
+  "id": 799424816,
+  "tags": {
+    "leisure": "nature_reserve",
+    "name": "ground"
+  }
+},
+{
+  "type": "way",
+  "id": 799424818,
+  "tags": {
+    "leisure": "nature_reserve",
+    "name": "ground"
+  }
+},
+{
+  "type": "way",
+  "id": 799424847,
+  "tags": {
+    "leisure": "nature_reserve",
+    "name": "ground"
+  }
+},
+{
+  "type": "way",
+  "id": 799424848,
+  "tags": {
+    "leisure": "nature_reserve",
+    "name": "ground"
+  }
+},
+{
+  "type": "way",
+  "id": 799424862,
+  "tags": {
+    "leisure": "nature_reserve",
+    "name": "ground"
+  }
+},
+{
+  "type": "way",
+  "id": 799424892,
+  "tags": {
+    "leisure": "nature_reserve"
+  }
+},
+{
+  "type": "way",
+  "id": 801492310,
+  "tags": {
+    "leisure": "nature_reserve",
+    "name": "thannithode forest"
+  }
+},
+{
+  "type": "way",
+  "id": 801660109,
+  "tags": {
+    "leisure": "nature_reserve",
+    "name": "ground"
+  }
+},
+{
+  "type": "way",
+  "id": 801679150,
+  "tags": {
+    "leisure": "nature_reserve",
+    "name": "Land"
+  }
+},
+{
+  "type": "way",
+  "id": 801679159,
+  "tags": {
+    "leisure": "nature_reserve",
+    "name": "Land"
+  }
+},
+{
+  "type": "way",
+  "id": 801679160,
+  "tags": {
+    "leisure": "nature_reserve",
+    "name": "Land"
+  }
+},
+{
+  "type": "way",
+  "id": 801679161,
+  "tags": {
+    "leisure": "nature_reserve",
+    "name": "Land"
+  }
+},
+{
+  "type": "way",
+  "id": 801679184,
+  "tags": {
+    "leisure": "nature_reserve",
+    "name": "Ground"
+  }
+},
+{
+  "type": "way",
+  "id": 802231674,
+  "tags": {
+    "leisure": "nature_reserve",
+    "name": "ecoforest"
+  }
+},
+{
+  "type": "way",
+  "id": 817305038,
+  "tags": {
+    "crop": "tapioca",
+    "landuse": "farmland",
+    "leisure": "nature_reserve"
+  }
+},
+{
+  "type": "way",
+  "id": 817305039,
+  "tags": {
+    "leisure": "nature_reserve",
+    "name": "Trees"
+  }
+},
+{
+  "type": "way",
+  "id": 817305051,
+  "tags": {
+    "leisure": "nature_reserve",
+    "name": "Rubber Trees"
+  }
+},
+{
+  "type": "way",
+  "id": 870811900,
+  "tags": {
+    "leisure": "nature_reserve",
+    "name": "LAND"
+  }
+},
+{
+  "type": "way",
+  "id": 870811907,
+  "tags": {
+    "leisure": "nature_reserve",
+    "name": "land"
+  }
+},
+{
+  "type": "way",
+  "id": 870811913,
+  "tags": {
+    "leisure": "nature_reserve",
+    "name": "LAND"
+  }
+},
+{
+  "type": "way",
+  "id": 870811914,
+  "tags": {
+    "leisure": "nature_reserve",
+    "name": "LAND"
+  }
+},
+{
+  "type": "way",
+  "id": 870811937,
+  "tags": {
+    "leisure": "nature_reserve",
+    "name": "GROUND"
+  }
+},
+{
+  "type": "way",
+  "id": 870827390,
+  "tags": {
+    "leisure": "nature_reserve",
+    "name": "Ground"
+  }
+},
+{
+  "type": "way",
+  "id": 897500708,
+  "tags": {
+    "leisure": "nature_reserve"
+  }
+},
+{
+  "type": "way",
+  "id": 898549381,
+  "tags": {
+    "leisure": "nature_reserve"
+  }
+},
+{
+  "type": "way",
+  "id": 899951761,
+  "tags": {
+    "leisure": "nature_reserve"
+  }
+},
+{
+  "type": "way",
+  "id": 899951765,
+  "tags": {
+    "leisure": "nature_reserve"
+  }
+},
+{
+  "type": "way",
+  "id": 899951766,
+  "tags": {
+    "leisure": "nature_reserve"
+  }
+},
+{
+  "type": "way",
+  "id": 899951770,
+  "tags": {
+    "leisure": "nature_reserve"
+  }
+},
+{
+  "type": "way",
+  "id": 900449721,
+  "tags": {
+    "leisure": "nature_reserve"
+  }
+},
+{
+  "type": "way",
+  "id": 922423207,
+  "tags": {
+    "leisure": "nature_reserve",
+    "name": "field"
+  }
+},
+{
+  "type": "way",
+  "id": 922423208,
+  "tags": {
+    "leisure": "nature_reserve",
+    "name": "field"
+  }
+},
+{
+  "type": "way",
+  "id": 1136512453,
+  "tags": {
+    "leisure": "nature_reserve",
+    "name": "Mahagony Thottam"
+  }
+},
+{
+  "type": "way",
+  "id": 1257832128,
+  "tags": {
+    "leisure": "nature_reserve",
+    "name": "ATTUVANCHIKKADU RESERVE FOREST",
+    "opening_hours": "24/7",
+    "operator": "KERALA FOREST DEPARTMENT",
+    "operator:type": "government"
+  }
+},
+{
+  "type": "way",
+  "id": 1304419812,
+  "tags": {
+    "boundary": "protected_area"
+  }
+},
+{
+  "type": "way",
+  "id": 1304419813,
+  "tags": {
+    "boundary": "protected_area"
+  }
+},
+{
+  "type": "way",
+  "id": 1304419814,
+  "tags": {
+    "boundary": "protected_area"
+  }
+},
+{
+  "type": "way",
+  "id": 1304419815,
+  "tags": {
+    "boundary": "protected_area"
+  }
+},
+{
+  "type": "way",
+  "id": 1304419816,
+  "tags": {
+    "boundary": "protected_area"
+  }
+},
+{
+  "type": "way",
+  "id": 1304419817,
+  "tags": {
+    "boundary": "protected_area"
+  }
+},
+{
+  "type": "way",
+  "id": 1451398328,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Suchindram Theroor Wetland Complex",
+    "ramsar": "yes",
+    "ref": "2492",
+    "source": "https://rsis.ramsar.org/ris/2492",
+    "website": "https://tnswa.tn.gov.in/ramsar-site-information.php?token=Suchindram-Theroor-Wetland-Complex",
+    "wikidata": "Q7632908"
+  }
+},
+{
+  "type": "relation",
+  "id": 415570,
+  "tags": {
+    "boundary": "national_park",
+    "leisure": "nature_reserve",
+    "name": "Gulf of Mannar Marine National Park",
+    "name:ml": "മന്നാർ ഉൾക്കടൽ മറൈൻ ദേശീയോദ്യാനം",
+    "name:ta": "மன்னார் வளைகுடா தேசிய கடல்சார் உயிரியல் பூங்கா",
+    "protect_class": "2",
+    "type": "boundary",
+    "wikidata": "Q5617576"
+  }
+},
+{
+  "type": "relation",
+  "id": 4808018,
+  "tags": {
+    "boundary": "protected_area",
+    "name": "Megamalai WLS",
+    "name:ml": "മേഘമല വന്യജീവി സങ്കേതം",
+    "name:ta": "மேகமலை வனவிலங்கு சரணாலயம்",
+    "protect_class": "4",
+    "type": "boundary"
+  }
+},
+{
+  "type": "relation",
+  "id": 9334908,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Koonthankulam-Kadankulam WLS",
+    "protect_class": "4",
+    "type": "boundary",
+    "wikidata": "Q2253195",
+    "wikipedia": "en:Koonthankulam Bird Sanctuary"
+  }
+},
+{
+  "type": "relation",
+  "id": 9335094,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Vettangudi WLS",
+    "protect_class": "4",
+    "type": "boundary",
+    "wikidata": "Q7923801",
+    "wikipedia": "en:Vettangudi Bird Sanctuary"
+  }
+},
+{
+  "type": "relation",
+  "id": 9336178,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Kanyakumari WLS",
+    "name:ml": "കന്യാകുമാരി വന്യജീവി സങ്കേതം",
+    "name:ta": "கன்னியாகுமரி வனவிலங்கு சரணாலயம்",
+    "protect_class": "4",
+    "source": "https://moef.gov.in/wp-content/uploads/2017/06/Kanyakumari.pdf",
+    "type": "boundary",
+    "wikidata": "Q16979364"
+  }
+},
+{
+  "type": "relation",
+  "id": 9336901,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Kodaikanal WLS",
+    "protect_class": "4",
+    "source": "https://allmaps.xyz/images/c17794e27e1596ec/{z}/{x}/{y}@2x.png",
+    "type": "boundary",
+    "wikidata": "Q131123428",
+    "wikipedia": "en:Kodaikanal Wildlife Sanctuary"
+  }
+},
+{
+  "type": "relation",
+  "id": 9453214,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Idukki Wildlife Sanctuary",
+    "name:ml": "ഇടുക്കി വന്യജീവി സങ്കേതം",
+    "protect_class": "4",
+    "start_date": "1976-02-09",
+    "type": "boundary",
+    "wikidata": "Q6808944",
+    "wikipedia": "en:Idukki Wildlife Sanctuary"
+  }
+},
+{
+  "type": "relation",
+  "id": 9469924,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Neyyar WLS",
+    "protect_class": "4",
+    "type": "boundary",
+    "wikidata": "Q6807544"
+  }
+},
+{
+  "type": "relation",
+  "id": 9762728,
+  "tags": {
+    "boundary": "protected_area",
+    "heritage": "1",
+    "heritage:operator": "whc",
+    "historic": "archaeological_site",
+    "name": "Great Living Chola Temples",
+    "name:ar": "معابد شولا الكبيرة الحية",
+    "name:en": "Great Living Chola Temples",
+    "name:es": "Grandes templos vivientes cholas",
+    "name:fr": "Les grands temples vivants Chola",
+    "name:ja": "大チョーラ朝寺院群",
+    "name:nl": "Great Living Chola tempels",
+    "name:ru": "Великие храмы империи Чола",
+    "name:zh": "朱罗王朝现存的神庙",
+    "protect_class": "22",
+    "ref:whc": "250bis",
+    "type": "site",
+    "whc:criteria": "(i)(ii)(iii)(iv)",
+    "whc:inscription_date": "1987",
+    "wikidata": "Q695229",
+    "wikipedia": "en:Great Living Chola Temples"
+  }
+},
+{
+  "type": "relation",
+  "id": 11278141,
+  "tags": {
+    "boundary": "protected_area",
+    "name": "Anamalai Tiger Reserve",
+    "name:ml": "ആനമല കടുവ സംരക്ഷണ കേന്ദ്രം",
+    "name:ta": "ஆனைமலை புலிகள் சரணாலயம்",
+    "old_name": "Indira Gandhi Wildlife Sanctuary and National Park",
+    "protect_class": "2",
+    "source": "https://allmaps.xyz/images/d840752af857349f/{z}/{x}/{y}@2x.png",
+    "type": "boundary",
+    "wikidata": "Q1661434"
+  }
+},
+{
+  "type": "relation",
+  "id": 11279545,
+  "tags": {
+    "boundary": "national_park",
+    "leisure": "nature_reserve",
+    "name": "Pambadum Shola National Park",
+    "name:ml": "പാമ്പാടുംചോല ദേശിയോദ്യാനം",
+    "name:ta": "பாம்பாடும் சோலை தேசியப் பூங்கா",
+    "protect_class": "2",
+    "source": "https://allmaps.xyz/images/7ece3c91d4cd4a20/{z}/{x}/{y}@2x.png",
+    "type": "boundary",
+    "wikidata": "Q3330156"
+  }
+},
+{
+  "type": "relation",
+  "id": 11279546,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Kurinjimala WLS",
+    "name:ml": "കുറിഞ്ഞിമല സംരക്ഷണകേന്ദ്രം",
+    "protect_class": "4",
+    "source": "https://allmaps.xyz/images/7ece3c91d4cd4a20/{z}/{x}/{y}@2x.png",
+    "type": "boundary",
+    "wikidata": "Q6446058",
+    "wikipedia": "en:Kurinjimala Sanctuary"
+  }
+},
+{
+  "type": "relation",
+  "id": 11279547,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Chinnar WLS",
+    "name:ml": "ചിന്നാർ വന്യജീവി സങ്കേതം",
+    "protect_class": "4",
+    "source": "https://allmaps.xyz/images/7ece3c91d4cd4a20/{z}/{x}/{y}@2x.png",
+    "type": "boundary",
+    "wikidata": "Q3522009",
+    "wikipedia": "en:Chinnar Wildlife Sanctuary"
+  }
+},
+{
+  "type": "relation",
+  "id": 11279548,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Parambikulam Tiger Reserve",
+    "name:ml": "പറമ്പിക്കുളം വന്യജീവി സംരക്ഷണ കേന്ദ്രം",
+    "protect_class": "4",
+    "source": "https://allmaps.xyz/images/983271c772119b11/{z}/{x}/{y}@2x.png",
+    "type": "boundary",
+    "wikidata": "Q3635169"
+  }
+},
+{
+  "type": "relation",
+  "id": 15036911,
+  "tags": {
+    "boundary": "national_park",
+    "leisure": "nature_reserve",
+    "name": "Anamudi Shola National Park",
+    "name:ml": "ആനമുടി ചോലവനം",
+    "protect_class": "2",
+    "source": "https://allmaps.xyz/images/7ece3c91d4cd4a20/{z}/{x}/{y}@2x.png",
+    "type": "multipolygon",
+    "wikidata": "Q3333420"
+  }
+},
+{
+  "type": "relation",
+  "id": 15434166,
+  "tags": {
+    "attribution": "Forest Department of Sri Lanka",
+    "boundary": "national_park",
+    "leisure": "nature_reserve",
+    "name": "Wilpattu National Park",
+    "name:ml": "വില്പട്ടു ദേശീയോദ്യാനം",
+    "name:si": "විල්පත්තු ජාතික උද්‍යානය",
+    "name:ta": "வில்பத்து தேசிய வனம்",
+    "opening_hours": "Mo-Su 06:00-18:00",
+    "protect_class": "2",
+    "protection_title": "National Park",
+    "ref:WDPA": "902",
+    "site_ownership": "national",
+    "site_status": "designated",
+    "start_date": "1938",
+    "type": "boundary",
+    "wikidata": "Q3524793",
+    "wikipedia": "en:Wilpattu National Park"
+  }
+},
+{
+  "type": "relation",
+  "id": 17744486,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Shendurney WLS",
+    "name:ml": "ശെന്ദുരിണി വന്യജീവി സങ്കേതം",
+    "name:ta": "செந்தூர்னி வனவிலங்கு சரணாலயம்",
+    "protect_class": "4",
+    "type": "multipolygon",
+    "wikidata": "Q7494223"
+  }
+},
+{
+  "type": "relation",
+  "id": 17746132,
+  "tags": {
+    "alt_name": "KMTR",
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Kalakkad Mundanthurai Tiger Reserve",
+    "name:ml": "കളക്കാട് മുണ്ടന്തുറ കടുവ സംരക്ഷണകേന്ദ്രം",
+    "name:ta": "களக்காடு முண்டந்துறை புலிகள் காப்பகம்",
+    "protect_class": "4",
+    "short_name": "KMTR",
+    "source": "wikiloc.com/wikiloc/view.do?id=662671",
+    "type": "multipolygon",
+    "wikidata": "Q3936889",
+    "wikimedia_commons": "Category:Kalakkad Mundanthurai Tiger Reserve",
+    "wikipedia": "en:Kalakkad Mundanthurai Tiger Reserve"
+  }
+},
+{
+  "type": "relation",
+  "id": 17746133,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Nellai WLS",
+    "protect_class": "4",
+    "type": "multipolygon",
+    "wikidata": "Q111181635"
+  }
+},
+{
+  "type": "relation",
+  "id": 17746631,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Peppara WLS",
+    "protect_class": "4",
+    "source": "https://moef.gov.in/wp-content/uploads/2022/03/Draft-Notification-Neyyar.pdf",
+    "type": "multipolygon",
+    "wikidata": "Q6809163"
+  }
+},
+{
+  "type": "relation",
+  "id": 19376020,
+  "tags": {
+    "leisure": "nature_reserve",
+    "name": "Neyyar Dam Lion Safari",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 19896759,
+  "tags": {
+    "boundary": "protected_area",
+    "name": "Kallaperambur Lake Bird WLS",
+    "protect_class": "4",
+    "type": "boundary",
+    "wikidata": "Q122363290"
+  }
+},
+{
+  "type": "relation",
+  "id": 21117309,
+  "tags": {
+    "boundary": "protected_area",
+    "name": "Munnar Wildlife Zone ESZ (Proposed)",
+    "protect_class": "6",
+    "protection_title": "Eco-Sensitive Zone",
+    "source": "https://allmaps.xyz/images/7ece3c91d4cd4a20/{z}/{x}/{y}@2x.png",
+    "type": "boundary"
+  }
+},
+{
+  "type": "relation",
+  "id": 21127130,
+  "tags": {
+    "boundary": "protected_area",
+    "name": "Anamalai Tiger Reserve ESZ (Proposed)",
+    "protect_class": "6",
+    "protection_title": "Eco-Sensitive Zone",
+    "source": "https://allmaps.xyz/images/d840752af857349f/{z}/{x}/{y}@2x.png",
+    "type": "multipolygon"
+  }
+},
+{
+  "type": "relation",
+  "id": 21127131,
+  "tags": {
+    "boundary": "protected_area",
+    "name": "Anamalai Tiger Reserve Buffer Area",
+    "protect_class": "4",
+    "source": "https://allmaps.xyz/images/d840752af857349f/{z}/{x}/{y}@2x.png",
+    "type": "boundary"
+  }
+},
+{
+  "type": "relation",
+  "id": 21127289,
+  "tags": {
+    "boundary": "protected_area",
+    "name": "Kodaikanal WLS ESZ (Proposed)",
+    "protect_class": "6",
+    "protection_title": "Eco-Sensitive Zone",
+    "source": "https://allmaps.xyz/images/c17794e27e1596ec/{z}/{x}/{y}@2x.png",
+    "type": "boundary"
+  }
+},
+{
+  "type": "relation",
+  "id": 21128925,
+  "tags": {
+    "boundary": "protected_area",
+    "name": "Parambikulam Tiger Reserve ESZ (Proposed)",
+    "protect_class": "6",
+    "protection_title": "Eco-Sensitive Zone",
+    "source": "https://allmaps.xyz/images/983271c772119b11/{z}/{x}/{y}@2x.png",
+    "type": "boundary"
+  }
+},
+{
+  "type": "relation",
+  "id": 21128954,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Chimmony WLS",
+    "name:ml": "ചിമ്മിണി വന്യജീവി സംരക്ഷണ കേന്ദ്രം",
+    "protect_class": "4",
+    "source": "https://allmaps.xyz/images/9a5564d1b31b7e62/{z}/{x}/{y}@2x.png",
+    "type": "multipolygon",
+    "wikidata": "Q6806784",
+    "wikimedia_commons": "Category:Chimmini Wildlife Sanctuary",
+    "wikipedia": "en:Chimmini Wildlife Sanctuary"
+  }
+},
+{
+  "type": "relation",
+  "id": 21129053,
+  "tags": {
+    "boundary": "protected_area",
+    "name": "Chimmony WLS ESZ (Proposed)",
+    "protect_class": "6",
+    "protection_title": "Eco-Sensitive Zone",
+    "source": "https://allmaps.xyz/images/9a5564d1b31b7e62/{z}/{x}/{y}@2x.png",
+    "type": "boundary"
+  }
+}
+
+  ]
+}

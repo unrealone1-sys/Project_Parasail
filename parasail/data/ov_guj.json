@@ -1,0 +1,2164 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62.4 2390de5a",
+  "osm3s": {
+    "timestamp_osm_base": "2026-09-13T14:30:36Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+
+{
+  "type": "way",
+  "id": 145267936,
+  "tags": {
+    "boundary": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 196551425,
+  "tags": {
+    "leisure": "nature_reserve",
+    "name": "Indian Wild Ass Wildlife Sanctury"
+  }
+},
+{
+  "type": "way",
+  "id": 374269683,
+  "tags": {
+    "boundary": "protected_area",
+    "name": "Porbandar Lake WLS",
+    "natural": "water",
+    "protect_class": "4",
+    "water": "pond",
+    "wikidata": "Q7229958",
+    "wikipedia": "en:Porbandar Bird Sanctuary"
+  }
+},
+{
+  "type": "way",
+  "id": 547174039,
+  "tags": {
+    "admin_level": "11",
+    "barrier": "wall",
+    "boundary": "administrative",
+    "government": "public_service",
+    "name": "Bhuj Collectors Office",
+    "office": "government"
+  }
+},
+{
+  "type": "way",
+  "id": 667545586,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Barda WLS",
+    "natural": "scrub",
+    "protect_class": "4",
+    "wikidata": "Q4860066",
+    "wikipedia": "en:Barda Wildlife Sanctuary"
+  }
+},
+{
+  "type": "way",
+  "id": 667553730,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Hingolgadh Nature Reserve WLS",
+    "protect_class": "4",
+    "wikidata": "Q124973261",
+    "wikipedia": "en:Hingolgadh Sanctuary"
+  }
+},
+{
+  "type": "way",
+  "id": 669203977,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Khijadiya WLS",
+    "protect_class": "4",
+    "wikidata": "Q2730580",
+    "wikipedia": "en:Khijadiya Bird Sanctuary"
+  }
+},
+{
+  "type": "way",
+  "id": 669206480,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Rampara WLS",
+    "protect_class": "4",
+    "wikidata": "Q125503789",
+    "wikipedia": "en:Rampara Sanctuary"
+  }
+},
+{
+  "type": "way",
+  "id": 669217186,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Wild Ass WLS",
+    "name:ar": "محمية الحمار البري الهندي",
+    "name:hi": "भारतीय जंगली गधा अभयारण्य",
+    "protect_class": "4",
+    "wikidata": "Q1207543",
+    "wikimedia_commons": "Category:Indian Wild Ass Sanctuary",
+    "wikipedia": "en:Indian Wild Ass Sanctuary"
+  }
+},
+{
+  "type": "way",
+  "id": 669220103,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Kachchh Desert WLS",
+    "name:ar": "محمية كوتش الصحراوية للحياة البرية",
+    "name:hi": "कच्छ रेगिस्तान वन्यजीव अभयारण्य",
+    "protect_class": "4",
+    "wikidata": "Q17068229",
+    "wikipedia": "en:Kutch Desert Wildlife Sanctuary"
+  }
+},
+{
+  "type": "way",
+  "id": 679583523,
+  "tags": {
+    "alt_name": "Kachchh Bustard Sanctuary",
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Lala Great Indian Bustard WLS",
+    "protect_class": "4",
+    "wikidata": "Q2726467",
+    "wikipedia": "en:Kutch Bustard Sanctuary"
+  }
+},
+{
+  "type": "way",
+  "id": 690224023,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 690224044,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 694565955,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 694638663,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 694638664,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 694638745,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative",
+    "district_name": "Rajkot"
+  }
+},
+{
+  "type": "way",
+  "id": 694793181,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 694793183,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 694793186,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 694935733,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 756855970,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 757784526,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 757845790,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 757845796,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 757845798,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 757845799,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 936802039,
+  "tags": {
+    "admin_level": "2",
+    "border_type": "territorial",
+    "boundary": "administrative",
+    "maritime": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 1230885280,
+  "tags": {
+    "boundary": "hazard",
+    "hazard": "children"
+  }
+},
+{
+  "type": "way",
+  "id": 1235592683,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1235592684,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1235592685,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1235592686,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1235592687,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1235592688,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1235592689,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1235592690,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1235592692,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1235816115,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1235816116,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1235816117,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1235827675,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1235827676,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1235827677,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1235827678,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1235827679,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative",
+    "name": "Devbhumi Dwarka"
+  }
+},
+{
+  "type": "way",
+  "id": 1235827681,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative",
+    "name": "Devbhumi Dwarka"
+  }
+},
+{
+  "type": "way",
+  "id": 1235902307,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1235902308,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1235902309,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1235902310,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1235902311,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1235902312,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1235902313,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1235902314,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1235904309,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1235904310,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1235904311,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1235904312,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1235904313,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1235904314,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1235904315,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1236019710,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative",
+    "district_name": "Rajkot"
+  }
+},
+{
+  "type": "way",
+  "id": 1236019711,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative",
+    "district_name": "Rajkot"
+  }
+},
+{
+  "type": "way",
+  "id": 1236019712,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1236019713,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1236019714,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1236019715,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1236019716,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1236026519,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1236028004,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1236028005,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1236028006,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1236028007,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1263447863,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative"
+  }
+},
+{
+  "type": "way",
+  "id": 1550874859,
+  "tags": {
+    "boundary": "protected_area",
+    "name": "Marine National Park"
+  }
+},
+{
+  "type": "relation",
+  "id": 304716,
+  "tags": {
+    "ISO3166-1": "IN",
+    "ISO3166-1:alpha2": "IN",
+    "ISO3166-1:alpha3": "IND",
+    "ISO3166-1:numeric": "356",
+    "admin_level": "2",
+    "alt_name:br": "Indez",
+    "alt_name:en": "Bharat;Hindustan",
+    "alt_name:eo": "Hindio;Hindujo;Hinda Unio",
+    "alt_name:ks": "بًارت",
+    "alt_name:lfn": "India",
+    "alt_name:ur": "ہندوستان;انڈیا",
+    "alt_name:vi": "Thiên Trúc;Quyên Độc",
+    "border_type": "nation",
+    "boundary": "administrative",
+    "capital_city": "New Delhi",
+    "country_code_fips": "IN",
+    "driving_side": "left",
+    "flag": "https://upload.wikimedia.org/wikipedia/commons/4/41/Flag_of_India.svg",
+    "geonames:id": "1269750",
+    "int_name": "India",
+    "name": "India",
+    "name:ace": "India",
+    "name:af": "Indië",
+    "name:als": "Indien",
+    "name:am": "ህንድ",
+    "name:an": "India",
+    "name:ang": "Indea",
+    "name:ar": "الهند",
+    "name:arc": "ܗܢܕܘ",
+    "name:arz": "الهند",
+    "name:as": "ভাৰত",
+    "name:ast": "India",
+    "name:av": "Хиндистан",
+    "name:ay": "Indya",
+    "name:az": "Hindistan",
+    "name:az-Arab": "هیندوستان",
+    "name:azb": "هیندوستان",
+    "name:ba": "Һиндостан",
+    "name:bar": "Indien",
+    "name:bat-smg": "Indėjė",
+    "name:bcl": "Indya",
+    "name:be": "Індыя",
+    "name:be-tarask": "Індыя",
+    "name:bg": "Индия",
+    "name:bh": "भारत",
+    "name:bi": "India",
+    "name:bjn": "India",
+    "name:bm": "Ɛndujamana",
+    "name:bn": "ভারত",
+    "name:bo": "རྒྱ་གར་",
+    "name:bpy": "ভারত",
+    "name:br": "India",
+    "name:bs": "Indija",
+    "name:bug": "India",
+    "name:bxr": "Энэдхэг",
+    "name:ca": "Índia",
+    "name:cbk-zam": "India",
+    "name:cdo": "Éng-dô",
+    "name:ce": "Инди",
+    "name:ceb": "Indya",
+    "name:chr": "ᎢᏅᏗᎾ",
+    "name:ckb": "ھیندستان",
+    "name:cnr": "Indija",
+    "name:co": "India",
+    "name:crh": "İndistan",
+    "name:cs": "Indie",
+    "name:csb": "Indie",
+    "name:cv": "Инди",
+    "name:cy": "India",
+    "name:da": "Indien",
+    "name:de": "Indien",
+    "name:din": "Indiɛn",
+    "name:diq": "Hindıstan",
+    "name:dsb": "Indiska",
+    "name:dv": "އިންޑިޔާ",
+    "name:dz": "རྒྱ་གར",
+    "name:ee": "India nutome",
+    "name:el": "Ινδία",
+    "name:en": "India",
+    "name:eo": "Barato",
+    "name:es": "India",
+    "name:et": "India",
+    "name:eu": "India",
+    "name:ext": "La Índia",
+    "name:fa": "هند",
+    "name:ff": "Enndo",
+    "name:fi": "Intia",
+    "name:fo": "India",
+    "name:fr": "Inde",
+    "name:frp": "Ende",
+    "name:frr": "Indien",
+    "name:fur": "Indie",
+    "name:fy": "Yndia",
+    "name:ga": "An India",
+    "name:gag": "İndiya",
+    "name:gan": "印度",
+    "name:gd": "Na h-Innseachan",
+    "name:gl": "India - भारत",
+    "name:glk": "هند",
+    "name:gn": "India",
+    "name:grc": "Ἰνδία",
+    "name:gu": "ભારત",
+    "name:gv": "Yn Injey",
+    "name:ha": "Indiya",
+    "name:hak": "Yin-thu",
+    "name:haw": "‘Īnia",
+    "name:he": "הודו",
+    "name:hi": "भारत",
+    "name:hif": "India",
+    "name:hr": "Indija",
+    "name:hsb": "Indiska",
+    "name:ht": "End",
+    "name:hu": "India",
+    "name:hy": "Հնդկաստան",
+    "name:ia": "India",
+    "name:id": "India",
+    "name:ie": "India",
+    "name:ig": "Ndia",
+    "name:ii": "ꑴꄗ",
+    "name:ilo": "India",
+    "name:io": "India",
+    "name:is": "Indland",
+    "name:it": "India",
+    "name:iu": "ᐃᓐᑎᐊ",
+    "name:iu-Latn": "intia",
+    "name:ja": "インド",
+    "name:ja-Latn": "Indo",
+    "name:jbo": "xingu'e",
+    "name:jv": "India",
+    "name:ka": "ინდოეთი",
+    "name:kab": "Lhend",
+    "name:kab-Arab": "لهند",
+    "name:kbd": "Индиэ",
+    "name:kg": "India",
+    "name:kk": "Үндістан",
+    "name:kl": "India",
+    "name:km": "ឥណ្ឌា",
+    "name:kmr": "حندستان",
+    "name:kn": "ಭಾರತ",
+    "name:ko": "인도",
+    "name:krc": "Индия",
+    "name:ks": "ہِندوستان",
+    "name:ksh": "Indije",
+    "name:ku": "Hindistan",
+    "name:ku-Arab": "حندستان",
+    "name:kv": "Индия",
+    "name:kw": "Eynda",
+    "name:ky": "Индия",
+    "name:la": "India",
+    "name:lb": "Indien",
+    "name:lbe": "Гьиндусттан",
+    "name:lez": "Индия",
+    "name:lfn": "Barat",
+    "name:lg": "Buyindi",
+    "name:li": "India",
+    "name:lij": "India",
+    "name:lmo": "India",
+    "name:ln": "Índɛ",
+    "name:lo": "ອິນເດຍ",
+    "name:lrc": "هند",
+    "name:lt": "Indija",
+    "name:ltg": "Iņdeja",
+    "name:lv": "Indija",
+    "name:lzh": "印度",
+    "name:map-bms": "India",
+    "name:mdf": "Индие",
+    "name:mg": "Indy",
+    "name:mi": "Īnia",
+    "name:mk": "Индија",
+    "name:ml": "ഇന്ത്യ",
+    "name:mn": "Энэтхэг",
+    "name:mo": "Индия",
+    "name:mr": "भारत",
+    "name:ms": "India",
+    "name:mt": "Indja",
+    "name:mwl": "Índia",
+    "name:my": "အိန္ဒိယ",
+    "name:mzn": "هند",
+    "name:na": "Indjiya",
+    "name:nah": "India",
+    "name:nan": "Ìn-tō͘",
+    "name:nap": "Innia",
+    "name:nds": "Indien",
+    "name:nds-nl": "India",
+    "name:ne": "भारत",
+    "name:new": "भारत",
+    "name:nl": "India",
+    "name:nn": "India",
+    "name:no": "India",
+    "name:nov": "India",
+    "name:nrm": "Înde",
+    "name:nv": "Tó Wónaanídę́ę́ʼ Bitsįʼ Yishtłizhii Bikéyah",
+    "name:oc": "Índia",
+    "name:or": "ଭାରତ",
+    "name:os": "Инди",
+    "name:pa": "ਭਾਰਤ",
+    "name:pam": "India",
+    "name:pap": "India",
+    "name:pcd": "Inde",
+    "name:pi": "भारत",
+    "name:pih": "Endya",
+    "name:pl": "Indie",
+    "name:pms": "India",
+    "name:pnb": "بھارت",
+    "name:ps": "هند",
+    "name:pt": "Índia",
+    "name:qu": "Indya",
+    "name:rm": "India",
+    "name:rmy": "Bharat",
+    "name:rn": "Ubuhindi",
+    "name:ro": "India",
+    "name:roa-rup": "India",
+    "name:roa-tara": "Indie",
+    "name:ru": "Индия",
+    "name:rue": "Індія",
+    "name:rw": "Ubuhinde",
+    "name:sa": "भारतम्",
+    "name:sah": "Индия",
+    "name:sat": "ᱵᱷᱟᱨᱚᱛ",
+    "name:sc": "Ìndia",
+    "name:scn": "Innia",
+    "name:sco": "Indie",
+    "name:sd": "ڀارت",
+    "name:se": "India",
+    "name:sg": "Ênnde",
+    "name:sh": "Indija",
+    "name:si": "ඉන්දියාව",
+    "name:sk": "India",
+    "name:sl": "Indija",
+    "name:sm": "Igitia",
+    "name:smn": "India",
+    "name:sms": "Intia",
+    "name:so": "Hindiya",
+    "name:sq": "Indi",
+    "name:sr": "Индија",
+    "name:srn": "Indiakondre",
+    "name:ss": "INdiya",
+    "name:stq": "Indien",
+    "name:su": "India",
+    "name:sv": "Indien",
+    "name:sw": "Uhindi",
+    "name:syc": "ܗܢܕܘ",
+    "name:szl": "Indyjŏ",
+    "name:ta": "இந்தியா",
+    "name:te": "భారత దేశం",
+    "name:tet": "Índia",
+    "name:tg": "Ҳиндустон",
+    "name:th": "ประเทศอินเดีย",
+    "name:ti": "ህንድ",
+    "name:tk": "Hindistan",
+    "name:tl": "Indya",
+    "name:to": "ʻInitia",
+    "name:tok": "ma Palata",
+    "name:tpi": "India",
+    "name:tr": "Hindistan",
+    "name:ts": "India",
+    "name:tt": "Һиндстан",
+    "name:ty": "’Inītia",
+    "name:udm": "Индия",
+    "name:ug": "ھىندىستان",
+    "name:uk": "Індія",
+    "name:ur": "بھارت",
+    "name:uz": "Hindiston",
+    "name:vec": "India",
+    "name:vi": "Ấn Độ",
+    "name:vo": "Lindän",
+    "name:vro": "India",
+    "name:wa": "Inde",
+    "name:wal": "Hindde",
+    "name:war": "Indya",
+    "name:wo": "End",
+    "name:wuu": "印度",
+    "name:xal": "Индия",
+    "name:xmf": "ინდოეთი",
+    "name:yi": "אינדיע",
+    "name:yo": "Orílẹ́ède India",
+    "name:yue": "印度",
+    "name:za": "Yindu",
+    "name:zea": "India",
+    "name:zh": "印度",
+    "name:zh-Hans": "印度",
+    "name:zh-Hant": "印度",
+    "name:zh-Latn-pinyin": "Yìndù",
+    "name:zu": "i-India",
+    "official_name": "भारत गणराज्य",
+    "official_name:ar": "جمهورية الهند",
+    "official_name:az-Arab": "هیندوستان جومهوریتی",
+    "official_name:azb": "هیندوستان جومهوریتی",
+    "official_name:be": "Рэспубліка Індыя",
+    "official_name:br": "Republik India",
+    "official_name:cs": "Indická republika",
+    "official_name:de": "Republik Indien",
+    "official_name:el": "Δημοκρατία της Ινδίας",
+    "official_name:en": "Republic of India",
+    "official_name:eo": "Respubliko Barato",
+    "official_name:es": "República de la India",
+    "official_name:fa": "جمهوری هندوستان",
+    "official_name:fr": "République de l'Inde",
+    "official_name:hi": "भारत गणराज्य",
+    "official_name:hu": "Indiai Köztársaság",
+    "official_name:id": "Republik India",
+    "official_name:it": "Repubblica dell'India",
+    "official_name:ks": "جۆمہوٗرِیہَ ہِندوستان",
+    "official_name:ku": "Komara Hindistanê",
+    "official_name:lb": "Republik Indien",
+    "official_name:lt": "Indijos Respublika",
+    "official_name:lv": "Indijas Republika",
+    "official_name:no": "Republikken India",
+    "official_name:pa": "ਭਾਰਤ ਗਣਰਾਜ",
+    "official_name:pl": "Republika Indii",
+    "official_name:pnb": "بھارت گنراج",
+    "official_name:ps": "د هند جمهوريت",
+    "official_name:ru": "Республика Индия",
+    "official_name:sr": "Република Индија",
+    "official_name:sv": "Republiken Indien",
+    "official_name:tl": "Republika ng Indya",
+    "official_name:ur": "جمہوریہ بھارت",
+    "official_name:vi": "Cộng hoà Ấn Độ",
+    "population": "1428627663",
+    "population:date": "2023",
+    "source:population": "https://en.wikipedia.org/wiki/India#cite_note-22",
+    "sqkm": "3287263",
+    "timezone": "Asia/Kolkata",
+    "type": "boundary",
+    "wikidata": "Q668",
+    "wikimedia_commons": "Category:India",
+    "wikipedia": "en:India"
+  }
+},
+{
+  "type": "relation",
+  "id": 1949080,
+  "tags": {
+    "ISO3166-2": "IN-GJ",
+    "admin_level": "4",
+    "boundary": "administrative",
+    "name": "Gujarat",
+    "name:ar": "كجرات",
+    "name:az-Arab": "قوجارات",
+    "name:azb": "قوجارات",
+    "name:be": "Гуджарат",
+    "name:be-tarask": "Гуджарат",
+    "name:bg": "Гуджарат",
+    "name:ce": "Гуджарат",
+    "name:ckb": "گوجەرات",
+    "name:cs": "Gudžarát",
+    "name:de": "Gujarat",
+    "name:dv": "ގުޖުރާތު",
+    "name:el": "Γκουτζαράτ",
+    "name:en": "Gujarat",
+    "name:eo": "Guĝarato",
+    "name:es": "Guyarat",
+    "name:fa": "گجرات",
+    "name:fr": "Gujarat",
+    "name:gu": "ગુજરાત",
+    "name:hi": "गुजरात",
+    "name:hy": "Գուջարաթ",
+    "name:id": "Gujarat",
+    "name:ja": "グジャラート",
+    "name:kab-Arab": "كجرات",
+    "name:kn": "ಗುಜರಾತ",
+    "name:ko": "구자라트",
+    "name:ks": "گُجرات",
+    "name:ku": "Gucerat",
+    "name:ku-Arab": "گوجەرات",
+    "name:ml": "ഗുജറാത്ത്",
+    "name:mr": "गुजरात",
+    "name:pa": "ਗੁਜਰਾਤ",
+    "name:pnb": "گجرات",
+    "name:ps": "گوجرات",
+    "name:pt": "Guzerate",
+    "name:ru": "Гуджарат",
+    "name:sd": "گجرات",
+    "name:ta": "குசராத்து",
+    "name:ug": "گۇجارات",
+    "name:uk": "Ґуджарат",
+    "name:ur": "گجرات",
+    "name:zh": "古吉拉特邦",
+    "ref": "GJ",
+    "ref:LGD:state": "24",
+    "type": "boundary",
+    "wikidata": "Q1061",
+    "wikipedia": "en:Gujarat",
+    "wikipedia:pa": "ਗੁਜਰਾਤ",
+    "wikipedia:ur": "گجرات (بھارت)"
+  }
+},
+{
+  "type": "relation",
+  "id": 1950801,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative",
+    "name": "Patan",
+    "name:ja": "パータン",
+    "name:ko": "파탄구",
+    "name:uk": "Патан",
+    "official_name": "Patan District",
+    "ref:LGD:district": "455",
+    "type": "boundary",
+    "wikidata": "Q1815269",
+    "wikipedia": "en:Patan district"
+  }
+},
+{
+  "type": "relation",
+  "id": 1953043,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative",
+    "name": "Surendranagar",
+    "name:ja": "スレーンドラナガル",
+    "name:ko": "수렌드라나가르구",
+    "official_name": "Surendranagar District",
+    "ref:LGD:district": "460",
+    "type": "boundary",
+    "wikidata": "Q237535",
+    "wikipedia": "en:Surendranagar district"
+  }
+},
+{
+  "type": "relation",
+  "id": 1953567,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative",
+    "name": "Rajkot",
+    "name:cs": "Rádžkót",
+    "name:gu": "રાજકોટ",
+    "name:hi": "राजकोट",
+    "name:ja": "ラージコート",
+    "name:ko": "라지코트구",
+    "name:pa": "ਰਾਜਕੋਟ",
+    "name:ta": "ராஜ்கோட்",
+    "official_name": "Rajkot District",
+    "ref:LGD:district": "457",
+    "type": "boundary",
+    "wikidata": "Q1815245",
+    "wikipedia": "en:Rajkot district"
+  }
+},
+{
+  "type": "relation",
+  "id": 8258732,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative",
+    "name": "Junagadh",
+    "name:ko": "주나가드구",
+    "name:ur": "ضلع جوناگڑھ",
+    "official_name": "Junagadh District",
+    "ref:LGD:district": "448",
+    "type": "boundary",
+    "wikidata": "Q1797344",
+    "wikipedia": "en:Junagadh district"
+  }
+},
+{
+  "type": "relation",
+  "id": 8259844,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative",
+    "name": "Bhavnagar",
+    "name:ar": "منطقة بهاونقر",
+    "name:de": "Distrikt Bhavnagar",
+    "name:es": "Distrito de Bhavnagar",
+    "name:fa": "بخش باهونگار",
+    "name:ko": "바브나가르구",
+    "name:pnb": "ضلع بھاونگر",
+    "name:ur": "بھاونگر ضلع",
+    "official_name": "Bhavnagar District",
+    "ref:LGD:district": "443",
+    "type": "boundary",
+    "wikidata": "Q854963"
+  }
+},
+{
+  "type": "relation",
+  "id": 8259845,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative",
+    "name": "Devbhumi Dwaraka",
+    "name:ko": "데부미드와르카구",
+    "official_name": "Devbhumi Dwaraka District",
+    "ref:LGD:district": "674",
+    "type": "boundary",
+    "wikidata": "Q14594717",
+    "wikipedia": "en:Devbhumi Dwarka district"
+  }
+},
+{
+  "type": "relation",
+  "id": 8259846,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative",
+    "name": "Porbandar",
+    "name:ko": "포르반다르구",
+    "name:ur": "ضلع پور بندر",
+    "official_name": "Porbandar District",
+    "ref:LGD:district": "456",
+    "type": "boundary",
+    "wikidata": "Q1772815",
+    "wikipedia": "en:Porbandar district"
+  }
+},
+{
+  "type": "relation",
+  "id": 8269589,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative",
+    "name": "Morbi",
+    "name:ko": "모르비구",
+    "official_name": "Morbi District",
+    "ref:LGD:district": "673",
+    "type": "boundary",
+    "wikidata": "Q5979727",
+    "wikipedia": "en:Morbi district"
+  }
+},
+{
+  "type": "relation",
+  "id": 8269590,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative",
+    "name": "Kutch",
+    "name:ar": "منطقة كتش",
+    "name:de": "Distrikt Kachchh",
+    "name:es": "Distrito de Kach",
+    "name:fa": "بخش کوتچ",
+    "name:ko": "쿠치구",
+    "name:ks": "ضلع کچھ",
+    "name:pnb": "ضلع کچھ",
+    "name:sd": "ضلع ڪڇ",
+    "name:ur": "ضلع کچھ",
+    "name:zh": "卡奇县",
+    "official_name": "Kutch District",
+    "ref:LGD:district": "449",
+    "type": "boundary",
+    "wikidata": "Q1063417",
+    "wikipedia": "en:Kutch district",
+    "wikipedia:ur": "ضلع کچھ"
+  }
+},
+{
+  "type": "relation",
+  "id": 8269654,
+  "tags": {
+    "admin_level": "5",
+    "alt_name:ur": "بوتاد ضلع",
+    "boundary": "administrative",
+    "name": "Botad",
+    "name:de": "Distrikt Botad",
+    "name:es": "Distrito de Botad",
+    "name:fa": "بخش بوتاد",
+    "name:fr": "District de Botad",
+    "name:ko": "보타드구",
+    "name:ur": "بوٹاد ضلع",
+    "official_name": "Botad District",
+    "ref:LGD:district": "676",
+    "type": "boundary",
+    "wikidata": "Q14505072"
+  }
+},
+{
+  "type": "relation",
+  "id": 8269655,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative",
+    "name": "Amreli",
+    "name:ko": "암렐리구",
+    "official_name": "Amreli District",
+    "ref:LGD:district": "439",
+    "type": "boundary",
+    "wikidata": "Q257946",
+    "wikipedia": "en:Amreli district"
+  }
+},
+{
+  "type": "relation",
+  "id": 8271162,
+  "tags": {
+    "admin_level": "5",
+    "boundary": "administrative",
+    "name": "Jamnagar",
+    "name:ar": "منطقة جام نقر",
+    "name:fa": "بخش جامنگر",
+    "name:ko": "잠나가르구",
+    "name:pnb": "ضلع جام نگر",
+    "name:ur": "جامنگر ضلع",
+    "official_name": "Jamnagar District",
+    "ref:LGD:district": "447",
+    "type": "boundary",
+    "wikidata": "Q2982118",
+    "wikipedia": "en:Jamnagar district",
+    "wikipedia:ur": "جامنگر ضلع"
+  }
+},
+{
+  "type": "relation",
+  "id": 8334753,
+  "tags": {
+    "boundary": "national_park",
+    "leisure": "nature_reserve",
+    "name": "Marine (Gulf of Kachchh) National Park",
+    "name:hi": "समुद्री (कच्छ की खाड़ी) राष्ट्रीय उद्यान",
+    "protect_class": "2",
+    "source": "https://www.indiawildliferesorts.com/images/marine-national-park-map.jpg",
+    "type": "boundary",
+    "wikidata": "Q2724481"
+  }
+},
+{
+  "type": "relation",
+  "id": 9078468,
+  "tags": {
+    "boundary": "protected_area",
+    "name": "Girnar WLS",
+    "natural": "wood",
+    "protect_class": "4",
+    "type": "boundary",
+    "water": "pond",
+    "wikidata": "Q131939336",
+    "wikipedia": "en:Girnar Wildlife Sanctuary"
+  }
+},
+{
+  "type": "relation",
+  "id": 9282949,
+  "tags": {
+    "boundary": "protected_area",
+    "leisure": "nature_reserve",
+    "name": "Gaga (Great Indian Bustard) WLS",
+    "protect_class": "4",
+    "type": "boundary",
+    "wikidata": "Q2731635",
+    "wikipedia": "en:Gaga Wildlife Sanctuary"
+  }
+},
+{
+  "type": "relation",
+  "id": 9652502,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Bhuj Taluka",
+    "name:gu": "ભુજ તાલુકો",
+    "name:ks": "بھوج تعلقہ",
+    "name:new": "भुज तालुका",
+    "name:ur": "بھوج تعلقہ",
+    "ref:LGD:subdistrict": "3726",
+    "type": "boundary",
+    "wikidata": "Q27125857"
+  }
+},
+{
+  "type": "relation",
+  "id": 9652503,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Nakhatrana Taluka",
+    "ref:LGD:subdistrict": "3727",
+    "type": "boundary",
+    "wikidata": "Q17076773"
+  }
+},
+{
+  "type": "relation",
+  "id": 9652504,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Rapar Taluka",
+    "ref:LGD:subdistrict": "3723",
+    "type": "boundary",
+    "wikidata": "Q27140289"
+  }
+},
+{
+  "type": "relation",
+  "id": 9652505,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Bhachau Taluka",
+    "ref:LGD:subdistrict": "3724",
+    "type": "boundary",
+    "wikidata": "Q25621301"
+  }
+},
+{
+  "type": "relation",
+  "id": 9652506,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Gandhidham Taluka",
+    "name:uk": "Ґандгідгам",
+    "ref:LGD:subdistrict": "3731",
+    "type": "boundary",
+    "wikidata": "Q23769272"
+  }
+},
+{
+  "type": "relation",
+  "id": 9652507,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Anjar Taluka",
+    "ref:LGD:subdistrict": "3725",
+    "type": "boundary",
+    "wikidata": "Q27116122"
+  }
+},
+{
+  "type": "relation",
+  "id": 9652508,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Mundra Taluka",
+    "ref:LGD:subdistrict": "3730",
+    "type": "boundary",
+    "wikidata": "Q24068042"
+  }
+},
+{
+  "type": "relation",
+  "id": 9652509,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Mandvi Taluka",
+    "ref:LGD:subdistrict": "3729",
+    "type": "boundary",
+    "wikidata": "Q27131250"
+  }
+},
+{
+  "type": "relation",
+  "id": 9652510,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Abdasa Taluka",
+    "ref:LGD:subdistrict": "3728",
+    "type": "boundary",
+    "wikidata": "Q2722317"
+  }
+},
+{
+  "type": "relation",
+  "id": 9652511,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Lakhpat Taluka",
+    "ref:LGD:subdistrict": "3722",
+    "type": "boundary",
+    "wikidata": "Q27987012"
+  }
+},
+{
+  "type": "relation",
+  "id": 9652688,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Sayla Taluka",
+    "ref:LGD:subdistrict": "3795",
+    "type": "boundary",
+    "wikidata": "Q25565243"
+  }
+},
+{
+  "type": "relation",
+  "id": 9652689,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Chotila Taluka",
+    "ref:LGD:subdistrict": "3794",
+    "type": "boundary",
+    "wikidata": "Q12923947"
+  }
+},
+{
+  "type": "relation",
+  "id": 9652690,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Muli Taluka",
+    "ref:LGD:subdistrict": "3793",
+    "type": "boundary",
+    "wikidata": "Q12938912"
+  }
+},
+{
+  "type": "relation",
+  "id": 9652691,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Wadhwan Taluka",
+    "ref:LGD:subdistrict": "3792",
+    "type": "boundary",
+    "wikidata": "Q12942349"
+  }
+},
+{
+  "type": "relation",
+  "id": 9652694,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Dhrangadhra Taluka",
+    "ref:LGD:subdistrict": "3789",
+    "type": "boundary",
+    "wikidata": "Q23005532"
+  }
+},
+{
+  "type": "relation",
+  "id": 9652695,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Halvad Taluka",
+    "ref:LGD:subdistrict": "3788",
+    "type": "boundary",
+    "wikidata": "Q12947373"
+  }
+},
+{
+  "type": "relation",
+  "id": 9653571,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Dhoraji Taluka",
+    "ref:LGD:subdistrict": "3810",
+    "type": "boundary",
+    "wikidata": "Q25565186"
+  }
+},
+{
+  "type": "relation",
+  "id": 9653572,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Upleta Taluka",
+    "ref:LGD:subdistrict": "3809",
+    "type": "boundary",
+    "wikidata": "Q12916065"
+  }
+},
+{
+  "type": "relation",
+  "id": 9653573,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Jam Kandoma Taluka",
+    "ref:LGD:subdistrict": "3808",
+    "type": "boundary",
+    "wikidata": "Q25565197"
+  }
+},
+{
+  "type": "relation",
+  "id": 9653574,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Jetpur Taluka",
+    "ref:LGD:subdistrict": "3811",
+    "type": "boundary",
+    "wikidata": "Q12925047"
+  }
+},
+{
+  "type": "relation",
+  "id": 9653575,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Gondal Taluka",
+    "name:uk": "Ґондал",
+    "ref:LGD:subdistrict": "3807",
+    "type": "boundary",
+    "wikidata": "Q12922152"
+  }
+},
+{
+  "type": "relation",
+  "id": 9653576,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Jasdan Taluka",
+    "ref:LGD:subdistrict": "3806",
+    "type": "boundary",
+    "wikidata": "Q12924687"
+  }
+},
+{
+  "type": "relation",
+  "id": 9653577,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Kotda Sangani Taluka",
+    "ref:LGD:subdistrict": "3805",
+    "type": "boundary",
+    "wikidata": "Q12920044"
+  }
+},
+{
+  "type": "relation",
+  "id": 9653578,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Rajkot Taluka",
+    "ref:LGD:subdistrict": "3803",
+    "type": "boundary",
+    "wikidata": "Q25565187"
+  }
+},
+{
+  "type": "relation",
+  "id": 9653579,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Lodhika Taluka",
+    "ref:LGD:subdistrict": "3804",
+    "type": "boundary",
+    "wikidata": "Q12942135"
+  }
+},
+{
+  "type": "relation",
+  "id": 9653580,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Paddhari Taluka",
+    "ref:LGD:subdistrict": "3802",
+    "type": "boundary",
+    "wikidata": "Q25565199"
+  }
+},
+{
+  "type": "relation",
+  "id": 9653581,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Wankaner Taluka",
+    "ref:LGD:subdistrict": "3801",
+    "type": "boundary",
+    "wikidata": "Q12942594"
+  }
+},
+{
+  "type": "relation",
+  "id": 9653582,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Tankara Taluka",
+    "ref:LGD:subdistrict": "3800",
+    "type": "boundary",
+    "wikidata": "Q12925515"
+  }
+},
+{
+  "type": "relation",
+  "id": 9653583,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Morbi Taluka",
+    "ref:LGD:subdistrict": "3799",
+    "type": "boundary",
+    "wikidata": "Q12939356"
+  }
+},
+{
+  "type": "relation",
+  "id": 9653584,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Maliya Taluka",
+    "ref:LGD:subdistrict": "3798",
+    "type": "boundary",
+    "wikidata": "Q12938394"
+  }
+},
+{
+  "type": "relation",
+  "id": 9656799,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Jamjodhpur Taluka",
+    "ref:LGD:subdistrict": "3821",
+    "type": "boundary",
+    "wikidata": "Q25565065"
+  }
+},
+{
+  "type": "relation",
+  "id": 9656800,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Bhanvad Taluka",
+    "ref:LGD:subdistrict": "3820",
+    "type": "boundary",
+    "wikidata": "Q12936371"
+  }
+},
+{
+  "type": "relation",
+  "id": 9656802,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Kalyanpur Taluka",
+    "ref:LGD:subdistrict": "3819",
+    "type": "boundary",
+    "wikidata": "Q12918260"
+  }
+},
+{
+  "type": "relation",
+  "id": 9656803,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Lalpur Taluka",
+    "ref:LGD:subdistrict": "3818",
+    "type": "boundary",
+    "wikidata": "Q25565081"
+  }
+},
+{
+  "type": "relation",
+  "id": 9656804,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Kalavad Taluka",
+    "ref:LGD:subdistrict": "3817",
+    "type": "boundary",
+    "wikidata": "Q25565058"
+  }
+},
+{
+  "type": "relation",
+  "id": 9656805,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Dhrol Taluka",
+    "ref:LGD:subdistrict": "3816",
+    "type": "boundary",
+    "wikidata": "Q25565079"
+  }
+},
+{
+  "type": "relation",
+  "id": 9656806,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Jodiya Taluka",
+    "ref:LGD:subdistrict": "3815",
+    "type": "boundary",
+    "wikidata": "Q25565071"
+  }
+},
+{
+  "type": "relation",
+  "id": 9656807,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Jamnagar Taluka",
+    "ref:LGD:subdistrict": "3814",
+    "type": "boundary",
+    "wikidata": "Q25565064"
+  }
+},
+{
+  "type": "relation",
+  "id": 9656808,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Khambhalia Taluka",
+    "ref:LGD:subdistrict": "3813",
+    "type": "boundary",
+    "wikidata": "Q25565062"
+  }
+},
+{
+  "type": "relation",
+  "id": 9656809,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Okhamandal Taluka",
+    "ref:LGD:subdistrict": "3812",
+    "type": "boundary",
+    "wikidata": "Q25565076"
+  }
+},
+{
+  "type": "relation",
+  "id": 9656874,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Kutiyana Taluka",
+    "ref:LGD:subdistrict": "3824",
+    "type": "boundary",
+    "wikidata": "Q12919270"
+  }
+},
+{
+  "type": "relation",
+  "id": 9656875,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Ranavav Taluka",
+    "ref:LGD:subdistrict": "3823",
+    "type": "boundary",
+    "wikidata": "Q12940570"
+  }
+},
+{
+  "type": "relation",
+  "id": 9656876,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Porbandar Taluka",
+    "name:ur": "پور بندر تعلقہ",
+    "ref:LGD:subdistrict": "3822",
+    "type": "boundary",
+    "wikidata": "Q12932952"
+  }
+},
+{
+  "type": "relation",
+  "id": 9657361,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Manavadar Taluka",
+    "ref:LGD:subdistrict": "3825",
+    "type": "boundary",
+    "wikidata": "Q25565039"
+  }
+},
+{
+  "type": "relation",
+  "id": 9657366,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Vanthali Taluka",
+    "ref:LGD:subdistrict": "3826",
+    "type": "boundary",
+    "wikidata": "Q12942244"
+  }
+},
+{
+  "type": "relation",
+  "id": 9657368,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Junagadh Taluka",
+    "ref:LGD:subdistrict": "3827",
+    "type": "boundary",
+    "wikidata": "Q27300002"
+  }
+},
+{
+  "type": "relation",
+  "id": 9657371,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Bhesan Taluka",
+    "ref:LGD:subdistrict": "3828",
+    "type": "boundary",
+    "wikidata": "Q12936631"
+  }
+},
+{
+  "type": "relation",
+  "id": 9657383,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Visavadar Taluka",
+    "ref:LGD:subdistrict": "3829",
+    "type": "boundary",
+    "wikidata": "Q12943227"
+  }
+},
+{
+  "type": "relation",
+  "id": 9659202,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Bagasara Taluka",
+    "ref:LGD:subdistrict": "3844",
+    "type": "boundary",
+    "wikidata": "Q12934030"
+  }
+},
+{
+  "type": "relation",
+  "id": 9659203,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Lilia Taluka",
+    "ref:LGD:subdistrict": "3842",
+    "type": "boundary",
+    "wikidata": "Q25564717"
+  }
+},
+{
+  "type": "relation",
+  "id": 9659204,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Lathi Taluka",
+    "name:uk": "Латгі",
+    "ref:LGD:subdistrict": "3841",
+    "type": "boundary",
+    "wikidata": "Q25560614"
+  }
+},
+{
+  "type": "relation",
+  "id": 9659205,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Babra Taluka",
+    "ref:LGD:subdistrict": "3840",
+    "type": "boundary",
+    "wikidata": "Q12934772"
+  }
+},
+{
+  "type": "relation",
+  "id": 9659206,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Kunkavav Vadia Taluka",
+    "ref:LGD:subdistrict": "3839",
+    "type": "boundary",
+    "wikidata": "Q24232554"
+  }
+},
+{
+  "type": "relation",
+  "id": 9659208,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Amreli Taluka",
+    "ref:LGD:subdistrict": "3843",
+    "type": "boundary",
+    "wikidata": "Q12914002"
+  }
+},
+{
+  "type": "relation",
+  "id": 9659890,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Gariadhar Taluka",
+    "ref:LGD:subdistrict": "3857",
+    "type": "boundary",
+    "wikidata": "Q12921708"
+  }
+},
+{
+  "type": "relation",
+  "id": 9659895,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Gadhada Taluka",
+    "name:uk": "Ґадгада",
+    "ref:LGD:subdistrict": "3852",
+    "type": "boundary",
+    "wikidata": "Q24090694"
+  }
+},
+{
+  "type": "relation",
+  "id": 9659897,
+  "tags": {
+    "admin_level": "6",
+    "alt_name:ur": "بوتاد تعلقہ",
+    "boundary": "administrative",
+    "name": "Botad Taluka",
+    "name:ur": "بوٹاد تعلقہ",
+    "ref:LGD:subdistrict": "3850",
+    "type": "boundary",
+    "wikidata": "Q12935598"
+  }
+},
+{
+  "type": "relation",
+  "id": 9678563,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Shankheswar Taluka",
+    "ref:LGD:subdistrict": "6197",
+    "type": "boundary",
+    "wikidata": "Q25621241"
+  }
+},
+{
+  "type": "relation",
+  "id": 9678731,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Vinchhiya Taluka",
+    "ref:LGD:subdistrict": "6198",
+    "type": "boundary",
+    "wikidata": "Q27554668"
+  }
+},
+{
+  "type": "relation",
+  "id": 9678914,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Thangadh Taluka",
+    "ref:LGD:subdistrict": "6037",
+    "type": "boundary",
+    "wikidata": "Q27643168"
+  }
+},
+{
+  "type": "relation",
+  "id": 9885658,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Jamnagar City Taluka",
+    "name:ur": "جامنگر شہر تعلقہ",
+    "ref:LGD:subdistrict": "6525",
+    "type": "boundary",
+    "wikidata": "Q123257243"
+  }
+},
+{
+  "type": "relation",
+  "id": 9885692,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Junagadh City Taluka",
+    "ref:LGD:subdistrict": "6517",
+    "type": "boundary",
+    "wikidata": "Q27526679"
+  }
+},
+{
+  "type": "relation",
+  "id": 14973226,
+  "tags": {
+    "boundary": "public_transport",
+    "name": "Western Railway",
+    "name:short": "WR",
+    "type": "boundary"
+  }
+},
+{
+  "type": "relation",
+  "id": 16087866,
+  "tags": {
+    "boundary": "administrative_cooperation",
+    "name": "Western Zonal Council",
+    "type": "boundary"
+  }
+},
+{
+  "type": "relation",
+  "id": 16739012,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Rajkot West Taluka",
+    "ref:LGD:subdistrict": "6523",
+    "type": "boundary",
+    "wikidata": "Q123257251"
+  }
+},
+{
+  "type": "relation",
+  "id": 16739013,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Rajkot South Taluka",
+    "ref:LGD:subdistrict": "6524",
+    "type": "boundary",
+    "wikidata": "Q123257244"
+  }
+},
+{
+  "type": "relation",
+  "id": 16739014,
+  "tags": {
+    "admin_level": "6",
+    "boundary": "administrative",
+    "name": "Rajkot East Taluka",
+    "ref:LGD:subdistrict": "6520",
+    "type": "boundary",
+    "wikidata": "Q123257252"
+  }
+},
+{
+  "type": "relation",
+  "id": 17453159,
+  "tags": {
+    "boundary": "administrative",
+    "name": "Mainland India",
+    "name:en": "Mainland India",
+    "name:ja": "インド本土",
+    "name:ja-Hira": "いんどほんど",
+    "name:ja-Latn": "Indo hondo",
+    "type": "boundary"
+  }
+},
+{
+  "type": "relation",
+  "id": 21061240,
+  "tags": {
+    "boundary": "protected_area",
+    "name": "Gir WLS ESZ (Proposed)",
+    "protect_class": "6",
+    "protection_title": "Eco Sensitive Zone",
+    "source": "Gazette",
+    "type": "boundary"
+  }
+},
+{
+  "type": "relation",
+  "id": 21253238,
+  "tags": {
+    "boundary": "protected_area",
+    "name": "Marine National Park",
+    "protect_class": "3",
+    "type": "boundary"
+  }
+}
+
+  ]
+}

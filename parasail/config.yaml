@@ -1,0 +1,354 @@
+# ParaSail deployment configuration - everything region- or policy-specific
+# lives here, never in code. Retargeting = editing this file.
+
+region:
+  name: indian-coast
+  bbox: [68.0, 6.0, 90.0, 23.5]       # lon_min, lat_min, lon_max, lat_max
+  grid: {res_deg: 0.10, step_hours: 1}
+  validation_cities:                    # T1 live-fetch test anchors (case study)
+    - {name: Kochi,               lat: 9.93,  lon: 76.26}
+    - {name: Kollam,              lat: 8.89,  lon: 76.61}
+    - {name: Kozhikode,           lat: 11.26, lon: 75.78}
+    - {name: Thiruvananthapuram,  lat: 8.52,  lon: 76.94}
+  # Availability across all coastal states (dropdown in the dashboard)
+  locations:
+    - state: Kerala
+      places:
+        - {name: Kochi,              lat: 9.93,  lon: 76.26}
+        - {name: Kollam,             lat: 8.89,  lon: 76.61}
+        - {name: Kozhikode,          lat: 11.26, lon: 75.78}
+        - {name: Thiruvananthapuram, lat: 8.52,  lon: 76.94}
+    - state: Tamil Nadu
+      places:
+        - {name: Chennai,     lat: 13.08, lon: 80.27}
+        - {name: Nagapattinam, lat: 10.77, lon: 79.84}
+        - {name: Rameswaram,  lat: 9.29,  lon: 79.31}
+        - {name: Thoothukudi, lat: 8.76,  lon: 78.13}
+        - {name: Kanyakumari, lat: 8.08,  lon: 77.54}
+    - state: Karnataka
+      places:
+        - {name: Mangaluru, lat: 12.87, lon: 74.84}
+        - {name: Udupi,     lat: 13.34, lon: 74.74}
+        - {name: Karwar,    lat: 14.81, lon: 74.13}
+    - state: Goa
+      places:
+        - {name: Panaji, lat: 15.50, lon: 73.83}
+    - state: Maharashtra
+      places:
+        - {name: Mumbai,    lat: 18.94, lon: 72.83}
+        - {name: Alibag,    lat: 18.64, lon: 72.87}
+        - {name: Ratnagiri, lat: 16.99, lon: 73.31}
+    - state: Gujarat
+      places:
+        - {name: Dwarka,         lat: 22.24, lon: 68.97}
+        - {name: Veraval,        lat: 20.91, lon: 70.37}
+        - {name: Surat (Hazira), lat: 21.17, lon: 72.83}
+    - state: Andhra Pradesh
+      places:
+        - {name: Visakhapatnam, lat: 17.69, lon: 83.22}
+        - {name: Kakinada,      lat: 16.99, lon: 82.25}
+        - {name: Machilipatnam, lat: 16.17, lon: 81.14}
+    - state: Odisha
+      places:
+        - {name: Paradip,            lat: 20.32, lon: 86.61}
+        - {name: Puri,               lat: 19.81, lon: 85.83}
+        - {name: Chandipur (Balasore), lat: 21.47, lon: 86.94}
+    - state: West Bengal
+      places:
+        - {name: Digha,      lat: 21.63, lon: 87.51}
+        - {name: Fraserganj, lat: 21.56, lon: 88.25}
+  landmarks:                            # anchor places for fish-location hints
+    - {name: Fort Kochi,            lat: 9.965, lon: 76.242}
+    - {name: Vypin Island,          lat: 10.02, lon: 76.28}
+    - {name: Munambam harbour,      lat: 10.14, lon: 76.20}
+    - {name: Alappuzha,             lat: 9.498, lon: 76.342}
+    - {name: Neendakara (Kollam),   lat: 8.94,  lon: 76.55}
+    - {name: Vizhinjam,             lat: 8.379, lon: 76.993}
+    - {name: Kozhikode beach,       lat: 11.259, lon: 75.780}
+    - {name: Beypore,               lat: 11.171, lon: 75.808}
+    - {name: Kanyakumari,           lat: 8.08,  lon: 77.54}
+    - {name: Thoothukudi harbour,   lat: 8.76,  lon: 78.13}
+    - {name: Rameswaram,            lat: 9.29,  lon: 79.31}
+    - {name: Nagapattinam,          lat: 10.77, lon: 79.84}
+    - {name: Marina Beach (Chennai), lat: 13.05, lon: 80.29}
+    - {name: Pulicat,               lat: 13.42, lon: 80.18}
+    - {name: Nellore coast,         lat: 14.44, lon: 80.03}
+    - {name: Machilipatnam,         lat: 16.17, lon: 81.14}
+    - {name: Kakinada,              lat: 16.99, lon: 82.25}
+    - {name: Visakhapatnam,         lat: 17.69, lon: 83.22}
+    - {name: Gopalpur,              lat: 19.33, lon: 84.92}
+    - {name: Puri,                  lat: 19.81, lon: 85.83}
+    - {name: Paradip,               lat: 20.32, lon: 86.61}
+    - {name: Chandipur,             lat: 21.47, lon: 86.94}
+    - {name: Digha,                 lat: 21.63, lon: 87.51}
+    - {name: Fraserganj,            lat: 21.56, lon: 88.25}
+    - {name: Mangaluru (Panambur),  lat: 12.87, lon: 74.84}
+    - {name: Udupi (Malpe),         lat: 13.35, lon: 74.70}
+    - {name: Karwar,                lat: 14.81, lon: 74.13}
+    - {name: Panaji (Goa),          lat: 15.50, lon: 73.83}
+    - {name: Ratnagiri,             lat: 16.99, lon: 73.31}
+    - {name: Alibag,                lat: 18.64, lon: 72.87}
+    - {name: Mumbai (Sassoon Dock), lat: 18.91, lon: 72.83}
+    - {name: Veraval,               lat: 20.91, lon: 70.37}
+    - {name: Dwarka,                lat: 22.24, lon: 68.97}
+
+# --- species registry (case study) -----------------------------------------
+# local_names: vernacular names shown in the dashboard when the user
+# switches language. Curated community knowledge (Kerala-first for the
+# case study); a missing language falls back to the English common name
+# - names are never machine-translated. Extend per region with local
+# experts, alongside the consent-gated local-knowledge corpus.
+species:
+  - scientific_name: Sardinella longiceps
+    common_name: Indian oil sardine
+    worms_aphia_id: 212269
+    modelling_path: blended           # LSTM tendency + habitat blend
+    data_availability: 0.75           # lambda in C = lambda*Chat + (1-lambda)*Hhat
+    preferred_sst_c: [22.0, 28.0]     # thermal envelope for habitat hints
+    local_names: {ml: "ചാള", ta: "சாளை"}
+    closures:
+      - {months: [6, 7], reason: "spawning protection - monsoon fishing closure",
+         citation: "regulations:monsoon-closure-sardine"}
+  - scientific_name: Rastrelliger kanagurta
+    common_name: Indian mackerel
+    worms_aphia_id: 127020
+    modelling_path: blended
+    data_availability: 0.70
+    preferred_sst_c: [24.0, 29.0]
+    local_names: {ml: "അയൽ", ta: "அயிலை", hi: "बंगड़ा"}
+    closures: []
+  - scientific_name: Thunnus tonggol
+    common_name: longtail tuna
+    worms_aphia_id: 219722
+    modelling_path: habitat_led
+    data_availability: 0.45
+    preferred_sst_c: [20.0, 28.0]     # thermal envelope for habitat hints
+    local_names: {}                   # curated per region; extend with local experts
+    closures: []
+  - scientific_name: Penaeus monodon
+    common_name: giant tiger prawn
+    worms_aphia_id: 210378
+    modelling_path: habitat_fallback  # data-poor taxon: habitat envelope only
+    data_availability: 0.20
+    preferred_sst_c: [25.0, 30.0]
+    local_names: {ml: "കടുവ ചെമ്മീൻ", ta: "கருப்பு இறால்", hi: "झींगா"}
+    closures: []
+  - scientific_name: Scomberomorus commerson
+    common_name: Narrow-barred Spanish mackerel (seer fish)
+    worms_aphia_id: 127024
+    modelling_path: habitat_led
+    data_availability: 0.50
+    preferred_sst_c: [22.0, 29.0]
+    local_names: {ml: "നെയ്മീൻ", ta: "வஞ்சிரம்"}
+    closures: []
+  - scientific_name: Katsuwonus pelamis
+    common_name: skipjack tuna
+    worms_aphia_id: 127018
+    modelling_path: habitat_led
+    data_availability: 0.45
+    preferred_sst_c: [24.0, 30.0]
+    local_names: {ml: "ചൂർ", ta: "சூரை"}
+    closures: []
+  - scientific_name: Euthynnus affinis
+    common_name: kawakawa (mackerel tuna)
+    worms_aphia_id: 219708
+    modelling_path: habitat_led
+    data_availability: 0.40
+    preferred_sst_c: [23.0, 30.0]
+    local_names: {ml: "ചൂർ", ta: "சூரை"}
+    closures: []
+  - scientific_name: Stolephorus commersonnii
+    common_name: Commerson's anchovy
+    worms_aphia_id: 152017
+    modelling_path: blended
+    data_availability: 0.55
+    preferred_sst_c: [25.0, 30.0]
+    local_names: {ml: "നെത്തോലി", ta: "நெത்தலி"}
+    closures: []
+  - scientific_name: Trichiurus lepturus
+    common_name: largehead hairtail (ribbonfish)
+    worms_aphia_id: 127089
+    modelling_path: habitat_led
+    data_availability: 0.45
+    preferred_sst_c: [22.0, 29.0]
+    local_names: {ml: "വാൽ", ta: "வாலை"}
+    closures: []
+  - scientific_name: Decapterus russelli
+    common_name: Indian scad
+    worms_aphia_id: 218427
+    modelling_path: blended
+    data_availability: 0.50
+    preferred_sst_c: [22.0, 29.0]
+    local_names: {}             # curated per region; extend with local experts
+    closures: []
+  - scientific_name: Lutjanus malabaricus
+    common_name: Malabar blood snapper
+    worms_aphia_id: 218481
+    modelling_path: habitat_led
+    data_availability: 0.40
+    preferred_sst_c: [24.0, 30.0]
+    local_names: {ml: "ചെമ്പല്ലി"}
+    closures: []
+  - scientific_name: Fenneropenaeus indicus
+    common_name: Indian white prawn
+    worms_aphia_id: 377434
+    modelling_path: habitat_fallback
+    data_availability: 0.25
+    preferred_sst_c: [25.0, 30.0]
+    local_names: {ml: "വെള്ള ചെമ്മീൻ", ta: "வெள்ள இறால்"}
+    closures: []
+
+# --- advisory scoring (weights owned by governance, not developers) --------
+advisory:
+  weights: {catch: 0.45, weather: 0.25, ecological: 0.30}
+  thresholds:
+    proceed: 0.75
+    caution: 0.60
+    delay: 0.40
+  weather_safety:                      # small-vessel guidance used for W
+    max_wind_ms: 8.0                   # ~Beaufort 5
+    max_wave_height_m: 1.5
+  bycatch_proxy:
+    sensitive_habitat_weight: 0.5      # B rises near seagrass/coral/mangrove
+    juvenile_period_weight: 0.5        # B rises in juvenile recruitment months
+
+# --- selected models -------------------------------------------------------
+models:
+  detector: yolov8n.pt                 # Ultralytics YOLOv8n
+  classifier: google/vit-base-patch16-224
+  classifier_adapter: null             # path to trained LoRA adapter (train/train_lora.py)
+  lora: {r: 8, alpha: 16, dropout: 0.05, target_modules: [query, value]}
+  forecaster: {layers: 2, hidden: 128, horizon_steps: 24, ckpt: null}
+  habitat: {n_estimators: 400, max_depth: 12, seed: 42, ckpt: null}
+  text_encoder: sentence-transformers/all-MiniLM-L6-v2
+  clip: {model: ViT-B-32, pretrained: laion2b_s34b_b79k}
+  # The advisory-explanation model moved to the assistant section (phase P7):
+  # a single open-source vision-language model serves summaries, Q&A and
+  # image understanding on the website. See docs/PRODUCTION_HARDWARE.md.
+
+# --- grounded AI assistant (phase P7, website layer) ------------------------
+# One open-source VLM (Apache-2.0) serves three jobs: plain-language advisory
+# summaries (decision-making analysis), grounded Q&A over the retrieval
+# corpus, and image understanding (catch photos, satellite tiles, charts).
+#
+# MODEL REGISTRY: users can switch models at runtime from the dashboard
+# (scaling by preference / hardware). active_model is the registry key;
+# the runtime selection persists in .cache/assistant_model.json, so
+# config.yaml stays pristine. Add or remove entries here without code edits.
+assistant:
+  enabled: true
+  active_model: qwen2.5vl-7b-awq
+  models:
+    qwen2.5vl-3b-laptop:
+      backend: ollama
+      model: qwen2.5vl:3b
+      vram_gb: 6
+      download_gb: 2.5
+      description: "Laptop tier (RTX 4050 class, 6 GB) - lightest, fastest"
+    qwen2.5vl-7b-awq:
+      backend: vllm
+      model: Qwen/Qwen2.5-VL-7B-Instruct-AWQ
+      vram_gb: 12
+      download_gb: 6.9
+      description: "Reference tier (8-12 GB VRAM) - best quality"
+    qwen2.5vl-7b-ollama:
+      backend: ollama
+      model: qwen2.5vl:7b
+      vram_gb: 10
+      download_gb: 6.0
+      description: "7B via Ollama - simplest local setup"
+    qwen2.5vl-72b-awq:
+      backend: vllm
+      model: Qwen/Qwen2.5-VL-72B-Instruct-AWQ
+      vram_gb: 48
+      download_gb: 41.0
+      description: "Datacenter tier - multi-GPU regional deployments"
+  # backend defaults (used by the active model's backend)
+  vllm:
+    base_url: http://localhost:8001/v1     # vLLM OpenAI-compatible server
+    model: Qwen/Qwen2.5-VL-7B-Instruct-AWQ
+    api_key: EMPTY                         # vLLM ignores the value, header required
+    timeout_s: 30
+  ollama:                                  # local fallback backend
+    base_url: http://localhost:11434
+    model: qwen2.5vl:7b                    # pulls the Q4 quantisation (~5-6 GB)
+    timeout_s: 60
+  max_concurrent_requests: 8               # protects small GPUs from overload
+  max_output_tokens: 512
+  temperature: 0.2                         # low: grounded, factual answers
+  summary_cache_ttl_s: 900                 # near-identical advisories share one generation
+  max_image_bytes: 6291456                 # 6 MB upload cap
+  grounding:
+    require_citations: true                # answers must cite retrieved passages
+    max_context_passages: 6                # top-k passages in the prompt
+
+# --- retrieval-augmented explanation --------------------------------------
+rag:
+  qdrant_url: http://localhost:6333
+  text_collection: parasail_text       # 384-d (MiniLM)
+  satellite_collection: parasail_sat   # 512-d (OpenCLIP ViT-B-32)
+  top_k: 4
+  chunk_chars: 700
+  chunk_overlap: 120
+
+# --- ingestion sources and freshness contracts -----------------------------
+ingestion:
+  open_meteo:
+    base: https://api.open-meteo.com/v1
+    marine_base: https://marine-api.open-meteo.com/v1
+    freshness_hours: 6
+    cache_dir: .cache/open-meteo
+  copernicus:
+    freshness_hours: 30
+    cache_dir: .cache/copernicus
+  erddap:
+    base: https://coastwatch.noaa.gov/erddap
+    freshness_hours: 30
+    cache_dir: .cache/erddap
+  offline_policy: serve_cached_with_age_flag   # never fail silently
+
+# --- persistence -----------------------------------------------------------
+database:
+  url: postgresql+psycopg://parasail:parasail@localhost:5432/parasail
+
+# --- optional instrumented station health (dashboard telemetry panel) ------
+# For deployments on an autonomous buoy or solar shore node, point status_url
+# at the node's health endpoint returning JSON such as
+#   {"battery_voltage_v": 12.4, "solar_output_w": 38.1}
+# position places the station on the dashboard map so users can see where
+# the data comes from. Unset -> the dashboard honestly reports the service
+# node on external power (battery/solar values are never fabricated).
+station:
+  name: parasail-node
+  status_url: null                     # e.g. http://192.168.1.50/status
+  position: {lat: 9.965, lon: 76.242}  # shown on the map as the data source
+
+# --- security (production hardening) ----------------------------------------
+# Rate limits are per client (X-Forwarded-For first hop behind a proxy),
+# sliding window. Buckets: default (reads), advisory (live-fetch endpoints),
+# assistant (AI generation), image (vision uploads), translate, subscribe,
+# admin. API keys grant roles: public < officer < admin. Store SHA-256
+# hashes (scripts/generate_api_key.py prints them); a plaintext `key` field
+# is allowed for local development only.
+security:
+  rate_limits:
+    default:    {limit: 120, window_s: 60}
+    advisory:   {limit: 30,  window_s: 60}
+    assistant:  {limit: 20,  window_s: 60}
+    image:      {limit: 10,  window_s: 60}
+    translate:  {limit: 60,  window_s: 60}
+    subscribe:  {limit: 5,   window_s: 300}
+    admin:      {limit: 10,  window_s: 60}
+  max_body_bytes: 10485760            # 10 MB request cap (images: 6 MB app-level)
+  cors_origins:                       # no wildcards; add your public origin
+    - http://localhost:8000
+    - http://127.0.0.1:8000
+  api_keys:                          # key stored as SHA-256 hash (scripts/generate_api_key.py)
+    - {name: local-admin, key_hash: 7c757692e630973c885f85a393fe142ad7de6066908f38a9d9fab8fe1b8a985a, role: admin}
+                                       # e.g. {name: ops, key_hash: <sha256>, role: admin}
+  public_docs: true                   # set false in production to hide /docs
+
+api:
+  title: ParaSail Advisory API
+  version: 1.0.0
+  contact: "Anantha Krishnan AS - Naipunnya School of Management, Cherthala, India"

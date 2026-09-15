@@ -1,0 +1,30 @@
+# ParaSail reference implementation - Python dependencies
+# Core API
+fastapi>=0.110
+uvicorn[standard]>=0.29
+pydantic>=2.6
+pyyaml>=6.0
+httpx>=0.27
+python-dotenv>=1.0
+
+# Persistence / vectors
+psycopg[binary]>=3.1                 # PostgreSQL + PostGIS access
+qdrant-client>=1.9
+
+# Classical ML baseline (Phase 3)
+scikit-learn>=1.4
+numpy>=1.26
+pandas>=2.2
+xarray>=2024.3                       # common spatiotemporal grid regridding
+
+# Deep learning (Phases 3-4)
+torch>=2.2                           # LSTM forecaster + LoRA fine-tuning host
+transformers>=4.40
+peft>=0.10                           # LoRA (r=8, query/value projections)
+sentence-transformers>=2.7           # all-MiniLM-L6-v2 text embeddings
+ultralytics>=8.2                     # YOLOv8n catch detector
+open-clip-torch>=2.24                # OpenCLIP ViT-B/32 satellite tile embeddings
+
+# Biodiversity / taxonomy clients
+pygbif>=0.6                          # GBIF occurrences
+pyworms>=0.12                        # WoRMS AphiaID taxonomy normalisation

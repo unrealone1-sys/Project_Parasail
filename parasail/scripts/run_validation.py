@@ -311,7 +311,9 @@ def t6_security(cfg) -> None:
         pass
     try:
       with TestClient(app) as client:
-        body = {"model": "qwen2.5vl-3b-laptop"}
+        # force:true: this test is about RBAC, not availability - the
+        # probed model may legitimately not be downloaded at test time
+        body = {"model": "qwen2.5vl-3b-laptop", "force": True}
         r_none = client.post("/assistant/model", json=body)
         r_officer = client.post("/assistant/model", json=body,
                                 headers={"X-API-Key": "test-officer-key"})

@@ -108,6 +108,24 @@ assistant:
 Environment overrides: `PARASAIL_VLLM_URL`, `PARASAIL_OLLAMA_URL` (used by
 docker-compose).
 
+### Model registry and honest availability
+
+`assistant.models` in config.yaml defines the switchable registry (key →
+backend, model, vram_gb, download_gb, description); the operator's choice
+persists in `.cache/assistant_model.json`, not in config.
+
+* `GET /assistant/models` probes every entry against its backend (20 s
+  cache, `?refresh=true` to re-probe now) and returns `available` plus an
+  `install_command` per model — the dashboard never shows a model as
+  usable when it is not actually downloaded/served.
+* `POST /assistant/model {"model": ...}` refuses a not-available model
+  with **409** and the exact install command. `force: true` switches
+  anyway; the response then carries `available: false` plus the install
+  command, and the assistant answers in built-in (template) mode until
+  the model is installed.
+* A registry entry may override the derived install command with an
+  `install:` hint (e.g. a custom `vllm serve` line).
+
 Running the model server:
 
 ```bash
@@ -126,11 +144,12 @@ ollama pull qwen2.5vl:3b
 
 ## Multilingual
 
-The dashboard language selector (10 Indian coastal languages) is passed
-through to the assistant; the VLM is instructed to reply in the requested
-language. In template mode, deterministic answers are routed through the
-existing `TranslationService`, so language coverage is identical with or
-without a GPU.
+The dashboard language selector (10 Indian coastal languages) is honoured
+by every answer path: the model always GENERATES in plain English (small
+local models reason poorly in Indic scripts directly — tested), and the
+finished answer is machine-translated into the requested language via the
+existing `TranslationService`. Template-mode answers are localized the
+same way, so language coverage is identical with or without a GPU.
 
 ## Validation (family T5)
 

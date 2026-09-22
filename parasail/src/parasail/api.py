@@ -41,7 +41,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from .advisory import AdvisoryEngine
-from .assistant import AssistantService
+from .assistant import AssistantService, ModelUnavailableError
 from .config import Config, load_config
 from .ingestion import IngestionService
 from .rag import RagService
@@ -150,6 +150,10 @@ class AssistantImageRequest(BaseModel):
 class AssistantModelRequest(BaseModel):
     model: str = Field(..., max_length=80,
                        description="registry key from GET /assistant/models")
+    force: bool = Field(
+        False, description="switch even when the model is not downloaded "
+        "yet; the assistant then answers in built-in mode until it is "
+        "installed (the response says so)")
 
 
 class NewsRequest(BaseModel):
@@ -245,6 +249,13 @@ UI_PAGE = """<!DOCTYPE html>
  .ntag{display:inline-block;background:#14707C;color:#fff;border-radius:5px;font-size:10px;padding:2px 8px;margin-right:8px;font-weight:600;vertical-align:1px}
  .nsrc{font-size:11px;color:#6B8290;margin-top:5px}
  .aisum .tagline{font-size:11px;font-weight:700;color:#14707C;letter-spacing:.6px;text-transform:uppercase;margin-bottom:5px}
+ .aisum .pts{margin:4px 0 0;padding:0}
+ .aisum .pts div{position:relative;padding:3px 0 3px 22px;animation:fadeUp .4s ease both}
+ .aisum .pts div:before{content:'';position:absolute;left:3px;top:10px;width:8px;height:8px;border-radius:2px;background:#14707C;transform:rotate(45deg)}
+ .aisum .pts div:nth-child(2){animation-delay:.07s}
+ .aisum .pts div:nth-child(3){animation-delay:.14s}
+ .aisum .pts div:nth-child(4){animation-delay:.21s}
+ .aisum .pts div:nth-child(5){animation-delay:.28s}
  .aisum .src{font-size:11px;color:#6B8290;margin-top:8px}
  #chatlog{max-height:300px;overflow-y:auto;margin:12px 0 6px;display:flex;flex-direction:column;gap:9px;scroll-behavior:smooth}
  .bub{max-width:86%;border-radius:13px;padding:10px 14px;font-size:14px;line-height:1.5;white-space:pre-wrap;animation:bubIn .28s cubic-bezier(.2,.9,.3,1.2) both}
@@ -263,8 +274,50 @@ UI_PAGE = """<!DOCTYPE html>
  #chatsend:disabled{opacity:.6;cursor:wait}
  .chathint{font-size:12.5px;color:#6B8290;margin:-6px 0 2px}
  .chattop{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
- #modelsel{background:#E3EFF1;border:1.5px solid #C7D8DD;color:#16323D;border-radius:8px;padding:6px 10px;font-size:12.5px;font-weight:600;cursor:pointer;max-width:250px;transition:border-color .18s}
- #modelsel:focus{outline:none;border-color:#14707C}
+ /* ---- model picker: chip button + modal panel with honest availability ---- */
+ .modelbtn{display:inline-flex;align-items:center;gap:8px;background:#E3EFF1;border:1.5px solid #C7D8DD;color:#16323D;border-radius:999px;padding:7px 14px;font-size:12.5px;font-weight:700;cursor:pointer;max-width:260px;font-family:inherit;transition:border-color .18s,background .15s,transform .12s}
+ .modelbtn:hover{border-color:#14707C;background:#D9E9ED;transform:translateY(-1px)}
+ .modelbtn .mdot{width:9px;height:9px;border-radius:50%;background:#9DB4BC;flex:none;transition:background .3s}
+ .modelbtn .mdot.ok{background:#4C9A57;animation:pulseDot 2.4s ease-out infinite}
+ .modelbtn .mdot.bad{background:#C94F4F}
+ .modelbtn .mchev{font-size:10px;color:#4A6B75}
+ .modalov{position:fixed;inset:0;background:rgba(10,32,42,.55);backdrop-filter:blur(3px);z-index:1200;display:none;align-items:center;justify-content:center;padding:18px}
+ .modalov.open{display:flex;animation:fadeUp .18s ease both}
+ .mpanel{background:#F6FAFB;border-radius:16px;box-shadow:0 18px 50px rgba(6,35,45,.35);width:min(560px,100%);max-height:86vh;overflow-y:auto;padding:20px 22px;animation:bubIn .24s cubic-bezier(.2,.9,.3,1.15) both}
+ .mphead{display:flex;justify-content:space-between;align-items:center;gap:10px}
+ .mpx{background:none;border:0;font-size:26px;line-height:1;color:#4A6B75;cursor:pointer;padding:2px 10px;border-radius:8px;transition:background .15s,color .15s}
+ .mpx:hover{background:#E3EFF1;color:#0E4A54}
+ .mpsub{font-size:12.5px;color:#6B8290;margin:6px 0 14px;line-height:1.5}
+ .mcard{background:#fff;border:1.5px solid #D5E3E8;border-radius:12px;padding:13px 15px;margin-bottom:10px;cursor:pointer;transition:border-color .18s,box-shadow .18s,transform .12s;animation:fadeUp .3s ease both}
+ .mcard:hover{border-color:#14707C;transform:translateY(-1px);box-shadow:0 6px 18px rgba(14,74,84,.10)}
+ .mcard.active{border-color:#14707C;box-shadow:0 0 0 3px rgba(20,112,124,.12);cursor:default}
+ .mcard.active:hover{transform:none;box-shadow:0 0 0 3px rgba(20,112,124,.12)}
+ .mtop{display:flex;justify-content:space-between;align-items:center;gap:8px}
+ .mname{font-family:ui-monospace,'Cascadia Mono',Consolas,monospace;font-weight:700;font-size:13px;color:#0E4A54}
+ .mchip{font-size:10.5px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;border-radius:999px;padding:3px 10px;white-space:nowrap}
+ .mchip.live{background:#E2F1E4;color:#2E7D3A}
+ .mchip.down{background:#F7E3E0;color:#A83E33}
+ .mdesc{font-size:12.5px;color:#4A6B75;margin:6px 0 9px;line-height:1.5}
+ .mmeta{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+ .mtag{font-size:11px;font-weight:700;color:#0E4A54;background:#E3EFF1;border-radius:7px;padding:3px 9px}
+ .minstall{display:none;margin-top:10px;background:#FBF3EE;border:1px solid #EAD3C8;border-radius:9px;padding:10px 12px;animation:fadeUp .25s ease both}
+ .mcard.showinstall .minstall{display:block}
+ .minstall .mt2{font-size:12px;font-weight:700;color:#8A3B2E;margin-bottom:5px}
+ .minstall .cmd{font-family:ui-monospace,'Cascadia Mono',Consolas,monospace;font-size:12px;color:#8A3B2E;word-break:break-all;display:block;margin-bottom:8px}
+ .minstall .still{background:none;border:1.5px solid #C94F4F;color:#A83E33;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .15s}
+ .minstall .still:hover{background:#F7E3E0}
+ .mpkey{display:none;margin-top:12px;background:#E3EFF1;border-radius:10px;padding:12px 14px;animation:fadeUp .25s ease both}
+ .mpkey.open{display:block}
+ .mpkey .kt{font-size:12.5px;font-weight:700;color:#0E4A54;margin-bottom:8px}
+ .mpkey .krow{display:flex;gap:8px}
+ .mpkey input{flex:1;padding:9px 12px;border:1.5px solid #C7D8DD;border-radius:8px;font-size:13px;font-family:inherit}
+ .mpkey input:focus{outline:none;border-color:#14707C}
+ .mpkey button{background:#14707C;color:#fff;border:0;border-radius:8px;padding:9px 16px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;transition:background .15s}
+ .mpkey button:hover{background:#0E5A66}
+ .mpfoot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:6px}
+ .mpnote{font-size:12px;color:#6B8290}
+ .mpghost{background:none;border:1.5px solid #C7D8DD;color:#0E4A54;border-radius:8px;padding:7px 14px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;transition:border-color .15s,background .15s;white-space:nowrap}
+ .mpghost:hover{border-color:#14707C;background:#E3EFF1}
  .maptools{display:flex;gap:8px;justify-content:center;padding:2px 2px 10px;flex-wrap:wrap}
  .maptools button{background:#E3EFF1;color:#0E4A54;border:0;border-radius:8px;padding:7px 15px;font-size:12.5px;font-weight:700;cursor:pointer;transition:background .15s,transform .12s}
  .maptools button:hover{background:#D2E4E8;transform:translateY(-1px)}
@@ -298,6 +351,16 @@ UI_PAGE = """<!DOCTYPE html>
  button.go:active:not(:disabled){transform:translateY(0)}
  button.go .spin{display:none;width:14px;height:14px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:-2px;margin-right:8px}
  button.go:disabled .spin{display:inline-block}
+ /* loading indicator beside the advice button: ocean-wave bars + hint */
+ .gorow{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+ .loadhint{display:inline-flex;align-items:center;gap:9px;font-size:13px;font-weight:700;color:#0E4A54;animation:fadeUp .25s ease both}
+ .loadhint.hidden{display:none}
+ .loadhint .waves{display:inline-flex;align-items:flex-end;gap:3px;height:18px;flex:none}
+ .loadhint .waves i{width:4px;height:16px;border-radius:2px;background:#14707C;transform-origin:bottom;animation:wavebars 1.05s ease-in-out infinite}
+ .loadhint .waves i:nth-child(2){animation-delay:.14s}
+ .loadhint .waves i:nth-child(3){animation-delay:.28s}
+ .loadhint .waves i:nth-child(4){animation-delay:.42s}
+ @keyframes wavebars{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
  .why li{animation:fadeUp .4s ease both}
  .why li:nth-child(2){animation-delay:.08s}.why li:nth-child(3){animation-delay:.16s}
  @media (prefers-reduced-motion: reduce){
@@ -317,6 +380,9 @@ UI_PAGE = """<!DOCTYPE html>
   .bub{max-width:94%}
   .tgrid{grid-template-columns:repeat(auto-fit,minmax(88px,1fr))}
   .main{grid-template-columns:1fr}
+  .modalov{padding:0;align-items:flex-end}
+  .mpanel{max-height:88vh;border-radius:16px 16px 0 0;padding:16px 14px}
+  .modelbtn{max-width:100%}
  }
  footer{color:#9DB8C0;font-size:12px;text-align:center;margin:4px 0 10px;line-height:1.8}
  footer a{color:#9DB8C0}
@@ -350,7 +416,10 @@ UI_PAGE = """<!DOCTYPE html>
   <div class="field"><label data-tr>Where will you fish?</label><select id="city" onchange="cityChange()">__CITY_OPTIONS__</select></div>
   <div class="field"><label data-tr>What are you catching?</label><select id="species"><option>loading...</option></select></div>
   <div class="field"><label data-tr>Which day?</label><input type="date" id="date"></div>
-  <button class="go" id="go" data-tr onclick="getAdvice()"><span class="spin"></span>Get my advice</button>
+  <div class="gorow">
+   <button class="go" id="go" onclick="getAdvice()"><span class="spin"></span><span id="golabel" data-tr>Get my advice</span></button>
+   <span class="loadhint hidden" id="loadhint"><span class="waves"><i></i><i></i><i></i><i></i></span><span data-tr>Reading the sea...</span></span>
+  </div>
  </div>
 
  <div class="main">
@@ -420,7 +489,9 @@ UI_PAGE = """<!DOCTYPE html>
  <div class="card" id="chatcard">
   <div class="chattop">
    <div class="sectitle" style="margin-bottom:0" data-tr>Ask ParaSail</div>
-   <select id="modelsel" onchange="switchModel(this.value)" title="AI model (switch any time)"><option>loading models...</option></select>
+   <button id="modelbtn" class="modelbtn" onclick="openModelPanel()" title="Choose the AI model">
+    <span class="mdot" id="modeldot"></span><span id="modelbtnlabel">AI model</span><span class="mchev">&#9662;</span>
+   </button>
   </div>
   <div class="chathint" data-tr>Ask anything about safety, fish or the rules - in your own words. Answers come from the same live data and the rule library, and cite their sources. Runs on our own computer, not a paid cloud service.</div>
   <div id="chatlog"></div>
@@ -434,6 +505,28 @@ UI_PAGE = """<!DOCTYPE html>
   <div class="sectitle" data-tr>Regional ocean news</div>
   <div id="newsitems"></div>
   <div class="note" id="newsnote" data-tr>News follows your language. Items from other regions are translated for you.</div>
+ </div>
+
+ <div id="modelov" class="modalov" onclick="if(event.target===this)closeModelPanel()">
+  <div class="mpanel" role="dialog" aria-modal="true" aria-label="Choose the AI model">
+   <div class="mphead">
+    <div class="sectitle" style="margin-bottom:0" data-tr>AI model</div>
+    <button class="mpx" onclick="closeModelPanel()" aria-label="Close">&#215;</button>
+   </div>
+   <div class="mpsub" data-tr>Everything runs on our own computer - never a paid cloud service. Pick the model that matches the hardware; the status tells you honestly whether it is installed.</div>
+   <div id="modellist"></div>
+   <div class="mpkey" id="mpkey">
+    <div class="kt" data-tr>Admin key required to switch models</div>
+    <div class="krow">
+     <input id="mpkeyin" type="password" placeholder="X-API-Key" onkeydown="if(event.key==='Enter')document.getElementById('mpkeybtn').click()">
+     <button id="mpkeybtn" data-tr>Unlock</button>
+    </div>
+   </div>
+   <div class="mpfoot">
+    <span class="mpnote" id="modelnote"></span>
+    <button class="mpghost" onclick="refreshModels()" data-tr>Re-check status</button>
+   </div>
+  </div>
  </div>
 
  <footer>Anantha Krishnan AS &middot; Naipunnya School of Management, Cherthala, India<br>
@@ -659,11 +752,6 @@ window.onload=function(){
  fetch('/health').then(function(r){return r.json();}).then(function(h){
   document.getElementById('pilltext').textContent='live \u00B7 '+h.species_count+' species';
  }).catch(function(){document.getElementById('pilltext').textContent='offline';});
- fetch('/assistant/status').then(function(r){return r.json();}).then(function(a){
-  var el=document.createElement('span');
-  el.textContent=a.backend==='template'?'AI: built-in':('AI: '+(a.model||'').split('/').pop());
-  el.title=a.available?'AI assistant ready':'AI assistant in fallback mode';
- }).catch(function(){});
  loadSpecies();
  if(map)map.whenReady(function(){setTimeout(function(){map.invalidateSize();},150);});
  loadMarkers();
@@ -745,7 +833,12 @@ async function refreshTelemetry(){
 
 async function getAdvice(){
  const btn=document.getElementById('go');
- setText(btn,'Checking the sea...');btn.disabled=true;
+ const label=document.getElementById('golabel');
+ const hint=document.getElementById('loadhint');
+ /* the label is a nested span: setText targets IT, never the button, so
+    the in-button spinner survives the text update */
+ setText(label,'Checking the sea...');btn.disabled=true;
+ hint.classList.remove('hidden');
  /* telemetry FIRST: the live-conditions card updates before the verdict
     and the AI summary appear, and the assistant is fed the same station
     data server-side (advisory.telemetry) - what you see is what it
@@ -767,8 +860,11 @@ async function getAdvice(){
  }catch(e){showError('could not reach the service: '+e);}
  renderSpots(results[1].status==='fulfilled'?results[1].value:null);
  renderAiSummary(results[2].status==='fulfilled'?results[2].value:null);
+ /* restore the label BEFORE the language pass so re-translation picks up
+    "Get my advice", not a stale "Checking the sea..." */
+ btn.disabled=false;setText(label,'Get my advice');
+ hint.classList.add('hidden');
  if(LANG!=='en')applyLanguage(false);
- btn.disabled=false;setText(btn,'Get my advice');
 }
 
 function renderAiSummary(d){
@@ -776,7 +872,19 @@ function renderAiSummary(d){
  if(!d||!d.summary){box.classList.add('hidden');return;}
  box.classList.remove('hidden');
  const s=d.summary;
- document.getElementById('aisum_text').textContent=s.summary;
+ const host=document.getElementById('aisum_text');host.innerHTML='';
+ /* structured: one point per line (server sends points; older responses
+    fall back to splitting a newline-separated summary; a single paragraph
+    renders as-is) */
+ let pts=(Array.isArray(s.points)&&s.points.length)?s.points.slice(0,6):null;
+ if(!pts&&s.summary.indexOf('\\n')>=0)pts=s.summary.split(/\\n+/);
+ if(pts&&pts.length>1){
+  const list=document.createElement('div');list.className='pts';
+  pts.forEach(function(p){p=(p||'').trim();if(!p)return;
+   const li=document.createElement('div');li.textContent=p;list.appendChild(li);});
+  if(list.childNodes.length>1)host.appendChild(list);
+  else host.textContent=s.summary;
+ }else{host.textContent=s.summary;}
  localize(document.getElementById('aisum_src'),
   s.backend==='template'
    ?'deterministic summary (no AI needed for this one)'
@@ -815,46 +923,133 @@ async function sendChat(){
  document.getElementById('chatlog').scrollTop=9e9;
  btn.disabled=false;
 }
-/* ---- model switcher: scale quality against the hardware you have ---- */
-async function loadModels(){
- try{
-  const r=await fetch('/assistant/models');const d=await r.json();
-  const sel=document.getElementById('modelsel');sel.innerHTML='';
-  (d.models||[]).forEach(function(m){
-   const o=document.createElement('option');
-   o.value=m.key;
-   o.textContent=m.key+(m.vram_gb?' \u00B7 '+m.vram_gb+' GB':'');
-   if(m.active)o.selected=true;
-   sel.appendChild(o);
-  });
- }catch(e){document.getElementById('modelsel').innerHTML='<option>built-in mode</option>';}
+/* ---- model switcher: chip button + polished picker panel. Availability
+   is HONEST: a model that is not downloaded shows a red status chip, the
+   exact install command, and refuses to pretend (switch is blocked unless
+   you explicitly choose "Switch anyway") ---- */
+let MODELS=[];
+function activeModel(){
+ let m=null;(MODELS||[]).forEach(function(x){if(x.active)m=x;});
+ return m;
 }
-async function switchModel(key){
- if(!key||key==='loading models...')return;
+function renderModelBtn(){
+ const m=activeModel();const dot=document.getElementById('modeldot');
+ const lbl=document.getElementById('modelbtnlabel');const btn=document.getElementById('modelbtn');
+ if(!m){lbl.textContent='AI: built-in';dot.className='mdot';btn.title='The assistant runs in built-in mode';return;}
+ lbl.textContent='AI: '+m.key;
+ dot.className='mdot '+(m.available?'ok':'bad');
+ btn.title=m.available?('AI model: '+m.key+' - ready')
+  :('AI model: '+m.key+' - NOT installed; answers fall back to built-in mode');
+}
+async function loadModels(refresh){
  try{
-  const r=await fetch('/assistant/model',{method:'POST',headers:{'Content-Type':'application/json','X-API-Key':apiKey()},body:JSON.stringify({model:key})});
-  if(r.status===401||r.status===403){
-   /* privileged action: ask once for the admin API key, remember it */
-   var k=prompt('Switching the AI model is an admin action.\\nEnter your admin API key (see docs/SECURITY.md):','');
-   if(!k)return;
-   localStorage.setItem('parasail_api_key',k);
-   const r2=await fetch('/assistant/model',{method:'POST',headers:{'Content-Type':'application/json','X-API-Key':k},body:JSON.stringify({model:key})});
-   if(r2.ok){modelSwitched(key);}else{switchFailed(r2.status);}
-   return;
+  const r=await fetch('/assistant/models'+(refresh?'?refresh=true':''));
+  const d=await r.json();MODELS=d.models||[];
+  renderModelBtn();
+  if(document.getElementById('modelov').classList.contains('open'))renderModelList();
+ }catch(e){
+  MODELS=[];renderModelBtn();
+ }
+}
+function refreshModels(){modelNote('re-checking status...');loadModels(true);}
+function openModelPanel(){
+ document.getElementById('modelov').classList.add('open');
+ renderModelList();loadModels(true);
+}
+function closeModelPanel(){
+ document.getElementById('modelov').classList.remove('open');
+ hideKeyRow();modelNote('');
+}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeModelPanel();});
+function modelNote(t){document.getElementById('modelnote').textContent=t||'';}
+function mtag(t){const s=document.createElement('span');s.className='mtag';s.textContent=t;return s;}
+function renderModelList(){
+ const box=document.getElementById('modellist');box.innerHTML='';
+ if(!(MODELS||[]).length){
+  const d=document.createElement('div');d.className='mpsub';
+  d.textContent='No model registry is configured - the assistant runs in built-in (template) mode.';
+  box.appendChild(d);return;
+ }
+ MODELS.forEach(function(m,i){
+  const c=document.createElement('div');
+  c.className='mcard'+(m.active?' active':'');
+  c.style.animationDelay=(i*0.06)+'s';c.id='mcard-'+m.key;
+  const top=document.createElement('div');top.className='mtop';
+  const nm=document.createElement('div');nm.className='mname';nm.textContent=m.key;
+  top.appendChild(nm);
+  const chip=document.createElement('span');
+  if(m.active&&m.available){chip.className='mchip live';chip.textContent='ACTIVE';}
+  else if(m.active){chip.className='mchip down';chip.textContent='ACTIVE \u00B7 NOT INSTALLED';}
+  else if(m.available){chip.className='mchip live';chip.textContent='READY';}
+  else{chip.className='mchip down';chip.textContent='NOT DOWNLOADED';}
+  top.appendChild(chip);c.appendChild(top);
+  const de=document.createElement('div');de.className='mdesc';
+  de.textContent=m.description||'';c.appendChild(de);
+  const meta=document.createElement('div');meta.className='mmeta';
+  if(m.vram_gb)meta.appendChild(mtag(m.vram_gb+' GB VRAM'));
+  if(m.download_gb)meta.appendChild(mtag(m.download_gb+' GB download'));
+  if(m.backend)meta.appendChild(mtag(m.backend));
+  c.appendChild(meta);
+  if(!m.available){
+   const ins=document.createElement('div');ins.className='minstall';
+   const t=document.createElement('div');t.className='mt2';
+   t.textContent='Not on this machine yet. Install it with:';
+   const cmd=document.createElement('code');cmd.className='cmd';
+   cmd.textContent=m.install_command||'see docs/AI_SETUP.md';
+   const still=document.createElement('button');still.className='still';
+   still.textContent='Switch anyway';
+   still.onclick=function(ev){ev.stopPropagation();switchModel(m.key,true);};
+   ins.appendChild(t);ins.appendChild(cmd);ins.appendChild(still);
+   c.appendChild(ins);
+   c.onclick=function(){c.classList.toggle('showinstall');};
+  }else if(!m.active){
+   c.onclick=function(){modelNote('');switchModel(m.key,false);};
   }
-  if(r.ok){modelSwitched(key);}else{switchFailed(r.status);}
- }catch(e){switchFailed(0);}
+  box.appendChild(c);
+ });
 }
+async function switchModel(key,force,withKey){
+ const headers={'Content-Type':'application/json'};
+ const k=withKey||apiKey();if(k)headers['X-API-Key']=k;
+ modelNote('switching...');
+ let r;
+ try{
+  r=await fetch('/assistant/model',{method:'POST',headers:headers,body:JSON.stringify({model:key,force:!!force})});
+ }catch(e){modelNote('network error - could not reach the server');return;}
+ if(r.status===401||r.status===403){showKeyRow(key,force);return;}
+ let d={};try{d=await r.json();}catch(e){}
+ if(r.ok){
+  document.getElementById('modelov').classList.remove('open');
+  hideKeyRow();
+  if(d.available===false){
+   addBubble('ai','Switched to '+key+', but it is NOT installed yet. Answers will come from built-in mode until you run: '+(d.install_command||'see docs/AI_SETUP.md'));
+  }else{
+   addBubble('ai','AI model switched to '+key+'. The next answers use it.');
+  }
+  document.getElementById('chatlog').scrollTop=9e9;
+  loadModels(false);
+ }else if(r.status===409){
+  modelNote('That model is not installed yet - see the install steps on its card.');
+  const card=document.getElementById('mcard-'+key);
+  if(card){card.classList.add('showinstall');
+   if(card.scrollIntoView)card.scrollIntoView({block:'nearest'});}
+ }else{
+  modelNote('Could not switch ('+r.status+'). The current model keeps serving.');
+ }
+}
+function showKeyRow(key,force){
+ const row=document.getElementById('mpkey');row.classList.add('open');
+ const inp=document.getElementById('mpkeyin');inp.value='';inp.focus();
+ document.getElementById('mpkeybtn').onclick=function(){
+  const k=inp.value.trim();if(!k)return;
+  localStorage.setItem('parasail_api_key',k);
+  row.classList.remove('open');
+  switchModel(key,force,k);
+ };
+}
+function hideKeyRow(){const row=document.getElementById('mpkey');if(row)row.classList.remove('open');}
 function apiKey(){
  try{return localStorage.getItem('parasail_api_key')||'';}catch(e){return '';}
-}
-function modelSwitched(key){
- addBubble('ai','AI model switched to '+key+'. The next answers will use it.');
- document.getElementById('chatlog').scrollTop=9e9;
-}
-function switchFailed(status){
- addBubble('ai',status===401?'That API key was not accepted.':'Could not switch the model ('+status+'). The current model keeps serving.');
- document.getElementById('chatlog').scrollTop=9e9;
 }
 
 /* ---- regional ocean news: follows the selected language; items from
@@ -1263,11 +1458,12 @@ def create_app(cfg: Config | None = None) -> FastAPI:
         return assistant().status()
 
     @app.get("/assistant/models")
-    def assistant_models() -> dict:
-        """The model registry for the dashboard switcher: switchable models
-        with backend, VRAM class and availability of the active one."""
+    def assistant_models(refresh: bool = False) -> dict:
+        """The model registry for the dashboard switcher: backend, VRAM
+        class and HONEST per-model availability (probed against the backend,
+        20 s cache; ?refresh=true re-probes now)."""
         return {"active_model": assistant().status().get("active_model"),
-                "models": assistant().list_models()}
+                "models": assistant().list_models(refresh=refresh)}
 
     @app.post("/assistant/model")
     def assistant_switch_model(req: AssistantModelRequest,
@@ -1275,11 +1471,18 @@ def create_app(cfg: Config | None = None) -> FastAPI:
                                    require_role(cfg, "admin"))) -> dict:
         """Switch the active assistant model at runtime (scaling by user
         preference / hardware). The choice persists across restarts.
-        Requires the ADMIN role (X-API-Key)."""
+        Refused with 409 + the install command when the model is not
+        downloaded/served unless force=true. Requires the ADMIN role
+        (X-API-Key)."""
         try:
-            result = assistant().switch_model(req.model)
+            result = assistant().switch_model(req.model, force=req.force)
             audit("model_switch", model=req.model, by_role=role)
             return result
+        except ModelUnavailableError as exc:
+            raise HTTPException(status_code=409, detail={
+                "error": str(exc), "model": exc.key,
+                "backend": exc.backend,
+                "install_command": exc.install_command}) from exc
         except ValueError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 

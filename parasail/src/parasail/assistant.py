@@ -54,6 +54,25 @@ _ENCOURAGEMENT = re.compile(
     r"\b(safe to (?:fish|sail|go)|go ahead|good day to fish|fish anyway)\b",
     re.IGNORECASE)
 
+# availability probe: short timeout + TTL cache so the dashboard can poll
+# the registry cheaply without hammering a down backend
+PROBE_TIMEOUT_S = 2.5
+PROBE_TTL_S = 20.0
+
+
+class ModelUnavailableError(ValueError):
+    """A switch to a model the configured backend cannot serve right now
+    (not downloaded, or the model server is down). Carries the install fix
+    so the dashboard can show exactly what to run."""
+
+    def __init__(self, key: str, backend: str, install_command: str):
+        self.key = key
+        self.backend = backend
+        self.install_command = install_command
+        super().__init__(
+            f"model {key!r} is not available on its backend ({backend}) - "
+            f"install it first: {install_command}")
+
 SYSTEM_PROMPT = """You are the ParaSail Assistant, the AI helper of a fishing
 advisory system used by fishers, fisheries officers and coastal communities.
 
@@ -70,15 +89,9 @@ Hard rules:
    visible; do not guess species or conditions you cannot see clearly.
 6. Keep answers short (under 150 words), plain and fisher-friendly. Explain
    any technical term you must use.
-7. Reply in the requested language - the entire answer, every sentence."""
-
-# language names for prompt instructions: small models follow "answer in
-# Malayalam" far more reliably than a bare code like 'ml'
-LANG_NAMES = {
-    "en": "English", "ml": "Malayalam", "ta": "Tamil", "kn": "Kannada",
-    "te": "Telugu", "mr": "Marathi", "gu": "Gujarati", "bn": "Bengali",
-    "or": "Odia", "hi": "Hindi",
-}
+7. Answer in plain, simple English even when the question is in another
+   language - a separate translation step localises your answer for the
+   fisher, and short simple English sentences translate best."""
 
 
 class AssistantService:
@@ -104,6 +117,7 @@ class AssistantService:
         self._client_lock = threading.Lock()
         self._summary_cache: dict[tuple, tuple[float, dict]] = {}
         self._cache_lock = threading.Lock()
+        self._probe_cache: dict[tuple, tuple[float, bool]] = {}
 
     # ------------------------------------------------------------------ #
     # model registry (runtime switching)
@@ -135,29 +149,52 @@ class AssistantService:
             if backend in ("vllm", "ollama") else None
         return {"key": None, "backend": backend, "model": model}
 
-    def list_models(self) -> list[dict]:
-        """Registry for the dashboard switcher: metadata + active flag."""
+    def list_models(self, refresh: bool = False) -> list[dict]:
+        """Registry for the dashboard switcher: metadata + HONEST per-model
+        availability (is it actually downloaded / served right now?)."""
+        if refresh:
+            self._probe_cache.clear()
         out = []
         for key, m in self._registry.items():
+            backend = m.get("backend", "template")
+            model = m.get("model")
             out.append({
                 "key": key,
-                "backend": m.get("backend", "template"),
-                "model": m.get("model"),
+                "backend": backend,
+                "model": model,
                 "vram_gb": m.get("vram_gb"),
                 "download_gb": m.get("download_gb"),
                 "description": m.get("description", ""),
+                "available": self._probe_availability(backend, model),
+                "install_command": self._install_command(m),
                 "active": key == self._active_key,
             })
         if not out:  # legacy config without a registry
             mc = self._model_conf()
             out.append({**mc, "vram_gb": None, "download_gb": None,
-                        "description": "configured model", "active": True})
+                        "description": "configured model",
+                        "available": self._probe_availability(
+                            mc.get("backend", "template"), mc.get("model")),
+                        "install_command": self._install_command(mc),
+                        "active": True})
         return out
 
-    def switch_model(self, key: str) -> dict:
-        """Switch the active model at runtime and persist the choice."""
+    def switch_model(self, key: str, force: bool = False) -> dict:
+        """Switch the active model at runtime and persist the choice.
+
+        Honest switching: the target model is probed first. An unavailable
+        model (not downloaded / backend down) is refused with
+        ModelUnavailableError unless force=True - after a forced switch the
+        returned status carries available=False plus the install command,
+        and the assistant keeps answering in template mode."""
         if self._registry and key not in self._registry:
             raise ValueError(f"unknown model {key!r} - not in registry")
+        entry = self._registry.get(key) or self._model_conf()
+        backend = entry.get("backend", "template")
+        available = self._probe_availability(backend, entry.get("model"))
+        install = self._install_command(entry)
+        if not available and not force:
+            raise ModelUnavailableError(key, backend, install)
         self._active_key = key
         try:
             MODEL_PREFS_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -173,8 +210,14 @@ class AssistantService:
                 self._client = None
         with self._cache_lock:           # summaries are model-specific
             self._summary_cache.clear()
-        log.info("assistant model switched to %s", key)
-        return self.status()
+        st = self.status()
+        if not available:
+            st["warning"] = ("model is not installed on this machine yet - "
+                             "answers fall back to built-in mode until then")
+            st["install_command"] = install
+        log.info("assistant model switched to %s (available=%s)",
+                 key, available)
+        return st
 
     # ------------------------------------------------------------------ #
     # backend plumbing
@@ -253,6 +296,54 @@ class AssistantService:
             log.info("assistant backend probe failed: %s", exc)
         return out
 
+    def _probe_availability(self, backend: str, model: str | None) -> bool:
+        """Can this backend serve this model RIGHT NOW (weights downloaded,
+        server up)? Short-timeout probe, TTL-cached so the dashboard can
+        poll the registry without hammering a down backend."""
+        if backend == "template" or not model:
+            return True
+        ck = (backend, model)
+        now = time.monotonic()
+        cached = self._probe_cache.get(ck)
+        if cached and now - cached[0] < PROBE_TTL_S:
+            return cached[1]
+        ok = False
+        try:
+            if backend == "vllm":
+                base = self.conf["vllm"]["base_url"].rstrip("/")
+                headers = {"Authorization":
+                           f"Bearer {self.conf['vllm'].get('api_key', 'EMPTY')}"}
+                r = httpx.get(base + "/models", headers=headers,
+                              timeout=PROBE_TIMEOUT_S)
+                ok = r.status_code == 200 and any(
+                    (m.get("id") or "").startswith(model)
+                    for m in r.json().get("data", []))
+            elif backend == "ollama":
+                base = self.conf["ollama"]["base_url"].rstrip("/")
+                r = httpx.get(base + "/api/tags", timeout=PROBE_TIMEOUT_S)
+                ok = r.status_code == 200 and any(
+                    (m.get("name") or "").startswith(model)
+                    for m in r.json().get("models", []))
+        except Exception as exc:  # noqa: BLE001 - probe must never raise
+            log.info("availability probe failed for %s/%s: %s",
+                     backend, model, exc)
+        self._probe_cache[ck] = (now, ok)
+        return ok
+
+    @staticmethod
+    def _install_command(entry: dict) -> str:
+        """The exact fix for a not-yet-available model (registry entries may
+        override with an `install:` hint)."""
+        hint = entry.get("install")
+        if hint:
+            return str(hint)
+        backend = entry.get("backend", "template")
+        if backend == "ollama":
+            return "ollama pull " + str(entry.get("model") or "")
+        if backend == "vllm":
+            return "docker compose --profile gpu up -d"
+        return ""
+
     # ------------------------------------------------------------------ #
     # prompt assembly
     # ------------------------------------------------------------------ #
@@ -273,12 +364,15 @@ class AssistantService:
         )
 
     def _grounded_messages(self, question: str, advisory: dict | None,
-                           passages: list[dict], language: str,
+                           passages: list[dict],
                            image: dict | None = None) -> list[dict]:
-        lang_name = LANG_NAMES.get(language, language)
-        blocks = [f"LANGUAGE: Write your ENTIRE answer in {lang_name} "
-                  f"(code '{language}'). If the code is not 'en', never "
-                  f"answer in English.\n"]
+        """Prompt for the LLM. Generation is ALWAYS in English - small local
+        models reason far better in English, and machine translation of a
+        finished English answer is far more reliable than asking a 3B model
+        to reason in Malayalam/Tamil/... directly (tested: that produces
+        fluent-looking but wrong text). The requested language is applied
+        AFTER generation, in _localize()."""
+        blocks: list[str] = []
         if advisory:
             blocks.append("ADVISORY DATA (authoritative, do not contradict):\n"
                           + json.dumps(
@@ -302,9 +396,7 @@ class AssistantService:
         if image:
             blocks.append(f"An image is attached ({image.get('kind', 'photo')}"
                           "). Describe only what is visible.\n")
-        blocks.append("QUESTION: " + question + (
-            f"\n(Reminder: your whole answer must be in {lang_name}.)"
-            if language != "en" else ""))
+        blocks.append("QUESTION: " + question)
         content = [{"type": "text", "text": "".join(blocks)}]
         if image and image.get("data_base64"):
             content.append({"type": "image_url", "image_url": {
@@ -347,7 +439,9 @@ class AssistantService:
         return answer
 
     # ------------------------------------------------------------------ #
-    # localization (template path: same languages as the dashboard UI)
+    # localization: LLM and template answers both pivot through English,
+    # then translate into the dashboard's languages (direct Indic
+    # generation on small models is unreliable - see _grounded_messages)
     # ------------------------------------------------------------------ #
     def _localize(self, text: str, language: str) -> str:
         if language == "en" or self.translation is None:
@@ -359,21 +453,6 @@ class AssistantService:
         except Exception:  # noqa: BLE001 - translation is best-effort
             pass
         return text
-
-    def _ensure_language(self, text: str, language: str) -> str:
-        """Small local models sometimes ignore the language instruction and
-        answer in English anyway. Detect that (pure-ASCII output) and
-        machine-translate through the translation service so the fisher
-        still reads their own language. Output that already contains
-        non-ASCII script obeyed the instruction and is left untouched."""
-        if language == "en" or not text or not text.isascii():
-            return text
-        if self.translation is None:
-            return text
-        try:
-            return self.translation.translate(text, language) or text
-        except Exception:  # noqa: BLE001 - translation is best-effort
-            return text
 
     # ------------------------------------------------------------------ #
     # public API
@@ -405,17 +484,20 @@ class AssistantService:
             return None
         passages = (advisory.get("context") or {}).get("passages", [])
         question = ("Explain this fishing advisory to a fisher in plain "
-                    "words: the verdict, the one or two things that drove "
-                    "it, what to watch out for, and how old the data is.")
+                    "words. Structure it as 3 to 5 short lines, one point "
+                    "per line, no numbering and no headings: the verdict "
+                    "first, then the one or two things that drove it, what "
+                    "to watch out for, and how old the data is.")
         try:
             answer = self._chat(self._grounded_messages(
-                question, advisory, passages, language))
+                question, advisory, passages))
             if not self._check_grounded(answer, passages):
                 log.warning("summary failed grounding check; using template")
                 return None
-            return {"summary": self._ensure_language(
-                        self._enforce_class_consistency(answer, advisory),
-                        language),
+            answer = self._enforce_class_consistency(answer, advisory)
+            points = self._split_points(answer)
+            localized = [self._localize(p, language) for p in points]
+            return {"summary": "\n".join(localized), "points": localized,
                     "backend": self.backend_name,
                     "model": self.model_name,
                     "grounded": bool(passages)}
@@ -423,14 +505,31 @@ class AssistantService:
             log.warning("LLM summary failed (%s); template fallback", exc)
             return None
 
+    @staticmethod
+    def _split_points(text: str) -> list[str]:
+        """Structure a summary into one point per line: split on line breaks
+        (the prompt asks for them), strip list numbering/bullets, and fall
+        back to sentence splitting when the model wrote one paragraph."""
+        _NUM = re.compile(r"^\s*(?:\d+[.)]|[-*\u2022])\s*")
+        lines = [_NUM.sub("", ln).strip()
+                 for ln in text.splitlines()]
+        points = [ln for ln in lines if ln]
+        if len(points) < 2:
+            points = [p.strip() for p in re.split(
+                r"(?<=[.!?\u0964])\s+", text) if p.strip()]
+        return points or [text.strip()]
+
     def _template_summary(self, advisory: dict, language: str) -> dict:
         """Deterministic, zero-LLM summary - the same facts the dashboard
-        renders, as text. Always available, including CPU-only deployments."""
+        renders, structured one point per line. Always available, including
+        CPU-only deployments."""
         if not advisory.get("allowed"):
-            text = (f"STOP - {advisory.get('block_reason', 'not allowed')}. "
-                    f"This comes from {advisory.get('citation', 'the rules')}. "
-                    "The system cannot advise fishing here now; the sea gets "
-                    "a break and you avoid a fine.")
+            points = [
+                f"STOP - {advisory.get('block_reason', 'not allowed')}.",
+                f"This comes from {advisory.get('citation', 'the rules')}.",
+                "The system cannot advise fishing here now; the sea gets "
+                "a break and you avoid a fine.",
+            ]
         else:
             c = advisory.get("components") or {}
             o = advisory.get("observed") or {}
@@ -454,16 +553,21 @@ class AssistantService:
                 details.append(
                     f"currents {t['ocean_current_velocity_kmh']:.1f} km/h")
             species = advisory.get("species", {}).get("common") or "your target"
-            text = (f"{CLASS_WORDS.get(advisory['class'], advisory['class'])} - "
-                    f"{weather} ({', '.join(details) or 'conditions measured at sea'})"
-                    f", {species} {fish}, and {risk} risk of harm to young "
-                    "fish and habitats.")
+            points = [
+                f"{CLASS_WORDS.get(advisory['class'], advisory['class'])} - "
+                f"{weather}.",
+                f"Sea right now: {', '.join(details) or 'conditions measured at sea'}.",
+                f"{species} {fish}.",
+                f"Risk to young fish and habitats: {risk}.",
+            ]
         q = advisory.get("data_quality") or {}
         if q.get("degraded"):
-            text += (f" Note: some data is {q.get('max_age_hours')} hours old "
-                     "(served from cache).")
-        return {"summary": self._localize(text, language), "backend": "template",
-                "model": "deterministic-template", "grounded": False}
+            points.append(f"Note: some data is {q.get('max_age_hours')} hours "
+                          "old (served from cache).")
+        localized = [self._localize(p, language) for p in points]
+        return {"summary": " ".join(localized), "points": localized,
+                "backend": "template", "model": "deterministic-template",
+                "grounded": False}
 
     def answer_question(self, question: str, language: str = "en",
                         advisory: dict | None = None, species: str | None = None,
@@ -490,7 +594,7 @@ class AssistantService:
         if self.backend_name != "template":
             try:
                 answer = self._chat(self._grounded_messages(
-                    question, advisory, passages, language))
+                    question, advisory, passages))
                 if not self._check_grounded(answer, passages):
                     answer = None
             except Exception as exc:  # noqa: BLE001
@@ -502,7 +606,7 @@ class AssistantService:
                 self._template_answer(question, advisory, passages), language)
 
         return {
-            "answer": self._ensure_language(
+            "answer": self._localize(
                 self._enforce_class_consistency(answer, advisory), language),
             "backend": backend,
             "model": self.model_name if backend != "template"
@@ -561,14 +665,16 @@ class AssistantService:
             prompt += f"\nThen answer: {question}"
         try:
             answer = self._chat(self._grounded_messages(
-                prompt, None, [], language,
+                prompt, None, [],
                 image={"kind": kind, "data_base64": data_base64}))
-            return {"description": answer, "backend": self.backend_name,
+            return {"description": self._localize(answer, language),
+                    "backend": self.backend_name,
                     "model": self.model_name, "kind": kind}
         except Exception as exc:  # noqa: BLE001
             log.warning("image description failed: %s", exc)
-            return {"description": "The image service is not available right "
-                                   "now. Please try again later.",
+            return {"description": self._localize(
+                        "The image service is not available right "
+                        "now. Please try again later.", language),
                     "backend": "template", "model": "deterministic-template",
                     "kind": kind, "error": str(exc)}
 

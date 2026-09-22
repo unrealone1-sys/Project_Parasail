@@ -74,6 +74,12 @@ services:
               capabilities: [gpu]
 
   api:
+    # Kept OUT of the default `docker compose up`: the container cannot reach
+    # Ollama running on the host (its localhost is the container itself), so it
+    # would answer from the template path while silently competing with the
+    # host uvicorn for port 8000. Start it deliberately when wanted with
+    # `docker compose --profile container up -d api`.
+    profiles: ["container"]
     build: .
     command: uvicorn parasail.api:app --host 0.0.0.0 --port 8000
     environment:

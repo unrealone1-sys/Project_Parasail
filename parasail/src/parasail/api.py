@@ -1185,9 +1185,17 @@ function renderSpots(s){
  if(spotLayer&&typeof L!=='undefined'&&s.zone){
   L.geoJSON(s.zone,{style:{color:'#2F9E8F',weight:2,fillColor:'#2F9E8F',fillOpacity:.18,dashArray:'5 4'},
    onEachFeature:function(f,lyr){
+    /* the popup names the scorer that produced the zone: a trained model
+       reports its threshold and training-record count, the untrained
+       envelope says so plainly (the API decides, not this code) */
+    const trained=(s.training_records!=null);
+    const basisString=trained
+      ?('trained habitat model \u00B7 '+(s.zone_threshold*100).toFixed(0)+'% threshold \u00B7 '+s.training_records+' presences')
+      :('live sea-temperature match \u2265 '+(s.zone_threshold!=null?(s.zone_threshold*100).toFixed(0):50)+'%');
     lyr.bindPopup('<b>Likely area</b> - '+(localNameFor(document.getElementById('species').value)||s.common_name)
-     +'<br>live sea-temperature match \u2265 '+(s.zone_threshold!=null?(s.zone_threshold*100).toFixed(0):50)+'%'
-     +'<br>'+(s.zone_cells||0)+' sea cells \u00B7 indicative hint, not a trained prediction');
+     +'<br>'+basisString
+     +'<br>'+(s.zone_cells||0)+' sea cells \u00B7 '
+     +(trained?'habitat estimate, not a catch forecast':'indicative hint, not a trained prediction'));
     lyr.bindTooltip('likely fish area',{sticky:true});
    }}).addTo(spotLayer);
  }

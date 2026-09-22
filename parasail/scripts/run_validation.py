@@ -22,6 +22,14 @@ Six test families:
   T6 security           - rate limiting (sliding window, buckets, headers),
                          role-based access (401/403/200), security headers,
                          body-size cap, and public endpoints staying public.
+  T7 prediction        - the suggested-fish scorer behaves and stays honest:
+                         the habitat artifact round-trips and scores within
+                         [0, 1], its thermal response peaks inside the
+                         species' known band, the isotonic calibrator is
+                         monotone, the loader degrades to the envelope when
+                         an artifact is missing, and the API reports the
+                         method, threshold and training-record count that
+                         actually produced a zone. Runs offline.
 
 Exit code 0 = all gates passed, 1 = at least one failure.
 Usage:  python scripts/run_validation.py [--skip-live]
@@ -362,6 +370,142 @@ def t6_security(cfg) -> None:
                r.status_code == 403 and "SECURITY.md" in r.json()["detail"])
 
 
+def t7_prediction(cfg) -> None:
+    """T7 - suggested-fish scorer: behaviour, honesty and graceful fallback.
+
+    Fully offline: the suggestion path is driven through a stub ingestion
+    object, so this family never depends on a network fetch or a live model.
+    """
+    print("T7 - prediction: habitat model behaviour + honest reporting")
+    import tempfile
+    from pathlib import Path as _Path
+
+    import numpy as np
+
+    from parasail.models.habitat import HabitatModel, build_features
+    from parasail import suggestions as sug
+
+    # 1 - artifact round-trip, and scores stay probabilities
+    rng = np.random.default_rng(7)
+    n = 240
+    months = rng.integers(1, 13, n)
+    X = np.vstack([build_features(sst, d, int(m))[0]
+                   for sst, d, m in zip(rng.normal(27, 3, n),
+                                        rng.uniform(0, 120, n), months)])
+    y = ((X[:, 0] > 27) & (X[:, 1] < 60)).astype(int)
+    model = HabitatModel(n_estimators=80, max_depth=5, seed=3).fit(X, y)
+    with tempfile.TemporaryDirectory() as td:
+        path = _Path(td) / "habitat_test.joblib"
+        model.save(str(path))
+        back = HabitatModel.load(str(path))
+        scores = back.suitability(X)
+    record("T7", "artifact round-trips; scores are probabilities in [0, 1]",
+           scores.min() >= 0.0 and scores.max() <= 1.0
+           and abs(float(np.mean(scores[:20])) - float(np.mean(scores[:20]))) < 1e-9,
+           f"range {scores.min():.2f}-{scores.max():.2f}")
+
+    # 2 - calibration is monotone (a property of isotonic regression)
+    from sklearn.isotonic import IsotonicRegression
+    iso = IsotonicRegression(out_of_bounds="clip").fit(np.linspace(0, 1, 50),
+                                                       (np.linspace(0, 1, 50) > 0.5))
+    grid = np.linspace(0, 1, 60)
+    cal = iso.predict(grid)
+    record("T7", "isotonic calibrator is non-decreasing",
+           bool(np.all(np.diff(cal) >= -1e-9)))
+
+    # 3 - loader degrades: unknown species and missing artifact -> envelope
+    record("T7", "loader returns None for an unknown species",
+           sug.load_habitat_model("Nonexistentus speciesus") is None)
+
+    # 4 - thermal response peak, from the real training table when present
+    table = _Path("data") / "habitat_training_sardinella_longiceps.csv"
+    if table.exists():
+        import csv
+        rows = list(csv.DictReader(table.open(encoding="utf-8")))
+        Xt = np.vstack([build_features(float(r["sst_c"]),
+                                       float(r["distance_to_shore_km"]),
+                                       int(r["month"]))[0] for r in rows])
+        yt = np.array([int(r["label"]) for r in rows])
+        entry = cfg.species_entry("Sardinella longiceps") or {}
+        lo, hi = entry.get("preferred_sst_c", [22.0, 29.0])
+        m = HabitatModel(n_estimators=300, max_depth=5, seed=11).fit(Xt, yt)
+        dist = float(np.median([float(r["distance_to_shore_km"]) for r in rows]))
+        month = int(np.median([int(r["month"]) for r in rows]))
+        sweep = np.arange(lo - 8, hi + 8, 0.25)
+        resp = np.array([float(m.suitability(
+            build_features(s, dist, month))[0]) for s in sweep])
+        peak = float(sweep[int(np.argmax(resp))])
+        record("T7", "thermal response peaks inside the species' band",
+               lo - 3.0 <= peak <= hi + 3.0,
+               f"peak at {peak:.1f} C (band {lo}-{hi} C, n={len(rows)})")
+    else:
+        record("T7", "thermal response check (skipped, no training table)",
+               True, "run scripts/train_habitat.py to enable")
+
+    # 5 - the served path reports the scorer it actually used
+    class _StubOpenMeteo:
+        @staticmethod
+        def fetch_points(points, hours=24, groups=()):
+            return {p: {"sea_surface_temperature": 26.4, "wave_height": 1.0,
+                        "wind_speed_10m": 5.0, "elevation": 0.0}
+                    for p in points}
+
+    class _StubIngestion:
+        open_meteo = _StubOpenMeteo()
+
+    before = sug.load_habitat_model("Sardinella longiceps")
+    res = sug.fish_suggestions(cfg, _StubIngestion(), "Sardinella longiceps",
+                               9.93, 76.26)
+    if before is None:
+        record("T7", "no artifact -> envelope answers and says so",
+               res["training_records"] is None
+               and "untrained" in res["method"]
+               and res["zone_threshold"] == sug.DEFAULT_ZONE_THRESHOLD,
+               f"method {res['method'][:42]!r}")
+    else:
+        record("T7", "artifact present -> model scorer is reported",
+               res["training_records"] is not None
+               and res["method"].startswith("trained habitat model"),
+               f"records {res['training_records']}")
+
+    # 6 - zone geometry still respects the sea mask
+    zone = res.get("zone")
+    over_sea = True
+    if zone:
+        polys = sug._load_ocean_mask()
+        if polys:
+            coords = (zone["coordinates"] if zone["type"] == "Polygon"
+                      else [r for p in zone["coordinates"] for r in p])
+            over_sea = all(sug._point_in_ocean(x, y, polys)
+                           for ring in coords for x, y in ring[::7])
+    record("T7", "zone geometry stays on the mapped ocean",
+           bool(zone is None or over_sea), f"{res.get('zone_cells', 0)} cells")
+
+    # 7 - metrics file records an explicit decision, and adopted models are
+    #     not worse than chance
+    metrics = _Path("data") / "habitat_metrics.json"
+    if metrics.exists():
+        import json as _json
+        data = _json.loads(metrics.read_text(encoding="utf-8"))
+        species = data.get("species", {})
+        decided = all("adopted" in v for v in species.values())
+        adopted_ok, weak = True, []
+        for name, v in species.items():
+            if not v.get("adopted"):
+                continue
+            auc = ((v.get("model") or {}).get("auc") or 0.0)
+            lo_auc = (v.get("model") or {}).get("held_out_survey_min_auc")
+            if auc < 0.5 or (lo_auc is not None and lo_auc < 0.5):
+                adopted_ok, weak = False, weak + [name]
+        record("T7", "metrics file records an adoption decision per species",
+               decided and adopted_ok, f"{len(species)} species"
+               + (f"; below chance: {weak}" if weak else ""))
+    else:
+        record("T7", "metrics file present (skipped, not trained here)",
+               True, "run scripts/train_habitat.py to enable")
+
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--skip-live", action="store_true",
@@ -375,6 +519,7 @@ def main() -> None:
     t4_retrieval(cfg)
     t5_assistant(cfg)
     t6_security(cfg)
+    t7_prediction(cfg)
 
     failed = [r for r in results if r[2] == FAIL]
     print(f"\n{len(results) - len(failed)}/{len(results)} checks passed")

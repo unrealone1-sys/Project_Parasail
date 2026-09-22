@@ -31,3 +31,10 @@ PROJECT_CONTEXT.md
 
 # deck render scratch (QA previews, extracted text)
 ParaSail_Paper/.cache_render/
+
+# habitat-model training artifacts (regenerate with scripts/train_habitat.py)
+parasail/data/habitat_training_*.csv
+parasail/data/habitat_metrics.json
+
+# agent tool state
+.zcode/

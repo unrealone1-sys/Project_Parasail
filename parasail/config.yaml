@@ -212,6 +212,18 @@ advisory:
     sensitive_habitat_weight: 0.5      # B rises near seagrass/coral/mangrove
     juvenile_period_weight: 0.5        # B rises in juvenile recruitment months
 
+# --- suggested-fish scoring ------------------------------------------------
+# The suggestion layer scores each grid cell with either the thermal envelope
+# (untrained, always available) or a trained habitat model artifact built by
+# scripts/train_habitat.py (models/habitat_<species>.joblib). An artifact is
+# only written where the model beat the envelope under spatial-block
+# validation AND transferred to a held-out survey; data/habitat_metrics.json
+# holds the measured numbers and the adoption decision per species.
+suggestions:
+  method: auto              # auto | envelope | model  (model pins the trained
+                            # path; auto keeps the envelope when no artifact)
+  min_training_records: 50  # never serve a model trained on a thinner sample
+
 # --- selected models -------------------------------------------------------
 models:
   detector: yolov8n.pt                 # Ultralytics YOLOv8n

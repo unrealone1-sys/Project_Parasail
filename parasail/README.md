@@ -104,6 +104,7 @@ parasail/
 ├── db/schema.sql              PostGIS schema
 ├── docs/
 │   ├── AI_ASSISTANT.md        assistant architecture, API, guardrails
+│   ├── PREDICTION.md          suggested-fish model: features, accuracy, retraining
 │   └── PRODUCTION_HARDWARE.md model VRAM budget, throughput, GPU tiers, costs
 ├── src/parasail/
 │   ├── config.py              YAML configuration loader

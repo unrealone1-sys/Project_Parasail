@@ -144,6 +144,25 @@ class RagService:
     # ------------------------------------------------------------------ #
     # hybrid retrieval
     # ------------------------------------------------------------------ #
+    @staticmethod
+    def _search(client, collection: str, query_vec: list, limit: int,
+                query_filter=None) -> list:
+        """Vector search across qdrant-client versions.
+
+        qdrant-client >= 1.10 removed `search()` in favour of
+        `query_points()`, which returns a response object rather than a
+        list. Without this shim, retrieval silently returns nothing against
+        current clients and every answer loses its citations.
+        """
+        if hasattr(client, "query_points"):
+            resp = client.query_points(collection_name=collection,
+                                       query=query_vec, query_filter=query_filter,
+                                       limit=limit, with_payload=True)
+            return list(getattr(resp, "points", resp) or [])
+        return list(client.search(collection_name=collection,
+                                  query_vector=query_vec,
+                                  query_filter=query_filter, limit=limit))
+
     def retrieve_context(self, query: str, species: str, lat: float, lon: float,
                          when: datetime, top_k: int | None = None) -> dict:
         """Top-k passages + tiles for an advisory, pre-filtered in space and
@@ -151,15 +170,27 @@ class RagService:
         from qdrant_client.models import FieldCondition, Filter, MatchValue
 
         k = top_k or self.conf["top_k"]
-        filters = [FieldCondition(key="species", match=MatchValue(value=species))]
         try:
             query_vec = self.encoder.encode(query).tolist()
-            hits = self.client.search(
-                collection_name=self.conf["text_collection"],
-                query_vector=query_vec,
-                query_filter=Filter(must=filters),
-                limit=k,
-            )
+
+            def _hits(species_filter: bool) -> list:
+                flt = (Filter(must=[FieldCondition(
+                    key="species", match=MatchValue(value=species))])
+                       if species_filter else None)
+                return self._search(self.client, self.conf["text_collection"],
+                                    query_vec, k, flt)
+
+            # merge species-tagged and general hits, then rank by score: most
+            # of the library (protected areas, system rules, regional news) is
+            # not species-specific, so a species-only filter would hide it -
+            # and returning species hits *instead of* better general ones is
+            # how an answer ends up citing something irrelevant
+            merged: dict = {}
+            for h in _hits(species_filter=True) + _hits(species_filter=False):
+                key = (h.payload.get("citation"), h.payload.get("text", "")[:80])
+                if key not in merged or h.score > merged[key].score:
+                    merged[key] = h
+            hits = sorted(merged.values(), key=lambda h: -h.score)[:k]
         except Exception as exc:  # noqa: BLE001 - retrieval must never block advice
             log.warning("text retrieval failed: %s", exc)
             hits = []

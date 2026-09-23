@@ -23,6 +23,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import os
 import threading
 import time
 from collections import deque
@@ -231,6 +232,31 @@ def _key_matches(provided: str, entry: dict) -> bool:
     return False
 
 
+def configured_api_keys(cfg: Config) -> list[dict]:
+    """API-key entries from config plus any injected through the
+    PARASAIL_API_KEYS environment variable (JSON list; same entry shape).
+    Malformed environment JSON is ignored with a warning rather than
+    taking the service down - a bad secret inject must not become an
+    outage, and the config keys (if any) keep working."""
+    sec = cfg.raw.get("security", {}) or {}
+    keys = list(sec.get("api_keys") or [])
+    raw = os.environ.get("PARASAIL_API_KEYS", "").strip()
+    if not raw:
+        return keys
+    try:
+        extra = json.loads(raw)
+        if isinstance(extra, dict):
+            extra = [extra]
+        if not isinstance(extra, list):
+            raise ValueError("expected a JSON list or object")
+        added = [e for e in extra if isinstance(e, dict)]
+        log.info("PARASAIL_API_KEYS injected %d key entr(ies)", len(added))
+        return keys + added
+    except Exception as exc:  # noqa: BLE001 - never fail closed on parse
+        log.warning("PARASAIL_API_KEYS ignored (invalid JSON: %s)", exc)
+        return keys
+
+
 def require_role(cfg: Config, minimum: str):
     """FastAPI dependency factory: enforces the minimum role for an
     endpoint. Credentials: X-API-Key header, validated against
@@ -239,9 +265,14 @@ def require_role(cfg: Config, minimum: str):
     401 = missing/invalid credentials, 403 = valid credentials,
     insufficient role. With no keys configured, privileged endpoints are
     locked (secure by default) with a pointer to docs/SECURITY.md.
+
+    Keys come from `security.api_keys` in config.yaml, optionally extended
+    by the PARASAIL_API_KEYS environment variable (a JSON list of entries in
+    the same shape). A production deployment should keep them in a secret
+    manager and inject via the environment, so no key material - not even a
+    hash - lives in the repository config.
     """
-    sec = cfg.raw.get("security", {}) or {}
-    keys = sec.get("api_keys") or []
+    keys = configured_api_keys(cfg)
 
     def dependency(
         x_api_key: str | None = Header(None, alias="X-API-Key"),

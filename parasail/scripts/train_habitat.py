@@ -306,6 +306,160 @@ def leave_one_dataset_out(rows: list[dict], X: np.ndarray, y: np.ndarray, *,
 
 
 # --------------------------------------------------------------------------- #
+# effort-aware training (the path that removes the presence-only ceiling)
+# --------------------------------------------------------------------------- #
+EFFORT_COLUMNS = ("date", "lat", "lon", "catch_kg", "effort_hours",
+                  "sst_c", "distance_to_shore_km")
+
+
+def load_effort_csv(path: Path, species: str | None = None) -> list[dict]:
+    """Landings/effort export -> labelled rows.
+
+    Required columns: date, lat, lon, catch_kg, effort_hours, sst_c,
+    distance_to_shore_km (optional `species`, used to filter rows).
+
+    Why this matters more than any modelling change: a trip that applied
+    effort and caught none of the target species is a TRUE ABSENCE, and the
+    open occurrence record cannot supply one. Absences are what turn a
+    habitat guess into a catch prediction; `effort_hours` weights each row by
+    how much evidence it carries.
+    """
+    import csv as _csv
+    rows: list[dict] = []
+    with Path(path).open(encoding="utf-8-sig", newline="") as fh:
+        reader = _csv.DictReader(fh)
+        missing = [c for c in EFFORT_COLUMNS
+                   if c not in (reader.fieldnames or [])]
+        if missing:
+            raise SystemExit("effort CSV is missing column(s): "
+                             + ", ".join(missing))
+        for raw in reader:
+            if species and raw.get("species") and raw["species"] != species:
+                continue
+            try:
+                catch = float(raw["catch_kg"])
+                effort = float(raw["effort_hours"])
+                lat = float(raw["lat"])
+                lon = float(raw["lon"])
+                sst = float(raw["sst_c"])
+                dist = float(raw["distance_to_shore_km"])
+                dt = datetime.fromisoformat(str(raw["date"])[:10])
+            except (TypeError, ValueError):
+                continue
+            if effort <= 0:
+                continue
+            rows.append({
+                "label": 1 if catch > 0 else 0,
+                "weight": max(effort, 0.1),
+                "cpue": catch / effort,
+                "lat": lat, "lon": lon, "month": dt.month,
+                "sst_c": sst, "distance_to_shore_km": dist,
+                "date": dt.date().isoformat(), "source": "effort-export"})
+    return rows
+
+
+def spearman(a: np.ndarray, b: np.ndarray) -> float | None:
+    """Rank correlation without scipy: Pearson on ranks. This is the number a
+    fisher actually cares about - does the score track what was caught?"""
+    if len(a) < 5 or np.all(a == a[0]) or np.all(b == b[0]):
+        return None
+    ra = np.argsort(np.argsort(a)).astype(float)
+    rb = np.argsort(np.argsort(b)).astype(float)
+    ra -= ra.mean()
+    rb -= rb.mean()
+    denom = float(np.sqrt((ra ** 2).sum() * (rb ** 2).sum()))
+    return round(float((ra * rb).sum() / denom), 4) if denom else None
+
+
+def train_from_effort(cfg, name: str, rows: list[dict], *, seed: int,
+                      out_dir: Path, model_dir: Path, log=print) -> dict:
+    """Train, validate and (only if it earns it) publish from effort data.
+
+    Cross-validation is by TIME block, not space: effort records are dense and
+    spatially autocorrelated, so spatial folds leak. Holding out whole date
+    ranges asks the operational question instead - would this have been right
+    on days it had never seen?
+    """
+    slug = re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
+    entry = cfg.species_entry(name) or {}
+    lo, hi = entry.get("preferred_sst_c", [22.0, 29.0])
+    base = {"species": name, "slug": slug, "source": "effort-export",
+            "generated_at": datetime.now(timezone.utc)
+            .isoformat(timespec="seconds"),
+            "features": FEATURE_ORDER,
+            "method_note": ("effort-weighted presence/absence with time-block "
+                            "cross-validation - the catch-level path")}
+    n_pres = sum(1 for r in rows if r["label"] == 1)
+    n_abs = len(rows) - n_pres
+    log(f"  effort rows: {len(rows)} ({n_pres} positive, {n_abs} true absences)")
+    if n_pres < 20 or n_abs < 20:
+        reason = (f"needs at least 20 rows of each kind; have {n_pres} "
+                  f"positive and {n_abs} absent")
+        log(f"  -> no model: {reason}")
+        return {**base, "n_presence": n_pres, "n_absence": n_abs,
+                "adopted": False, "reason": reason, "model": None}
+
+    rows = sorted(rows, key=lambda r: r["date"])
+    X = feature_matrix(rows)
+    y = np.array([r["label"] for r in rows])
+    w = np.array([r["weight"] for r in rows])
+    cpue = np.array([r["cpue"] for r in rows])
+    folds = np.array_split(np.arange(len(rows)), 4)       # time-ordered
+    hyper = dict(cfg.raw.get("models", {}).get("habitat", {}))
+
+    oof = np.full(len(y), np.nan)
+    for test_idx in folds:
+        train_idx = np.setdiff1d(np.arange(len(y)), test_idx)
+        if len(train_idx) < 10 or y[train_idx].min() == y[train_idx].max():
+            continue
+        m = HabitatModel(n_estimators=hyper.get("n_estimators", 400),
+                         max_depth=hyper.get("max_depth", 12), seed=seed)
+        m.clf.fit(X[train_idx], y[train_idx], sample_weight=w[train_idx])
+        oof[test_idx] = m.suitability(X[test_idx])
+    have = ~np.isnan(oof)
+    auc_effort = auc(y[have], oof[have])
+    env_scores = np.array([thermal_suitability(r["sst_c"], lo, hi)
+                           for r in rows])
+    auc_env = auc(y[have], env_scores[have])
+    rho = spearman(oof[have], cpue[have])
+
+    final = HabitatModel(n_estimators=hyper.get("n_estimators", 400),
+                         max_depth=hyper.get("max_depth", 12), seed=seed)
+    final.clf.fit(X, y, sample_weight=w)
+    try:
+        from sklearn.isotonic import IsotonicRegression
+        final.calibrator = IsotonicRegression(out_of_bounds="clip").fit(
+            oof[have], y[have])
+    except Exception as exc:                             # noqa: BLE001
+        log(f"  calibration skipped: {exc}")
+    thr = best_threshold(y, final.suitability(X))
+    adopted = bool(auc_effort >= 0.65 and rho is not None and rho >= 0.20
+                   and auc_effort > auc_env + ADOPT_MARGIN)
+    log(f"  AUC {auc_effort:.3f} vs envelope {auc_env:.3f} | "
+        f"Spearman(score, CPUE) {rho} | "
+        f"{'ADOPTED' if adopted else 'not adopted'}")
+    metrics = {"auc": round(auc_effort, 4), "auc_envelope": round(auc_env, 4),
+               "spearman_score_cpue": rho,
+               "precision_at_10pct": round(
+                   precision_at_k(y, final.suitability(X)), 4),
+               "threshold": round(thr, 3), "n_presence": n_pres,
+               "n_absence": n_abs,
+               "folds": [{"block": f"time-{i + 1}", "n": int(len(t))}
+                         for i, t in enumerate(folds)]}
+    if adopted:
+        final.metadata = {"species": name, "n_presence": n_pres,
+                          "n_background": n_abs, "threshold": round(thr, 3),
+                          "trained_at": base["generated_at"]}
+        final.save(str(model_dir / f"habitat_{slug}.joblib"))
+        log(f"  artifact: models/habitat_{slug}.joblib (effort-trained)")
+    return {**base, "n_presence": n_pres, "n_absence": n_abs,
+            "adopted": adopted, "model": metrics,
+            "reason": None if adopted else
+            ("needs AUC >= 0.65, Spearman >= 0.20 and a margin over the "
+             f"envelope (got AUC {auc_effort:.3f}, rho {rho})")}
+
+
+# --------------------------------------------------------------------------- #
 # training
 # --------------------------------------------------------------------------- #
 def train_species(cfg, client: httpx.Client, name: str, *, bbox: str,
@@ -463,6 +617,12 @@ def main() -> None:
     ap.add_argument("--max-depth", type=int, default=None,
                     help="override models.habitat.max_depth (shallow suits "
                          "small presence samples)")
+    ap.add_argument("--effort", type=Path, default=None,
+                    help="landings/effort CSV (columns: date, lat, lon, "
+                         "catch_kg, effort_hours, sst_c, distance_to_shore_km; "
+                         "optional species). When given, training uses TRUE "
+                         "ABSENCES and effort weights instead of an OBIS "
+                         "background - the catch-level path")
     args = ap.parse_args()
 
     cfg = load_config()
@@ -476,7 +636,16 @@ def main() -> None:
     report = {"generated_at": datetime.now(timezone.utc).isoformat(
         timespec="seconds"), "bbox": args.bbox, "min_records": args.min_records,
         "seed": args.seed, "species": {}}
-    with httpx.Client() as client:
+    if args.effort:
+        effort_rows = load_effort_csv(args.effort)
+        print(f"effort export: {len(effort_rows)} usable rows from {args.effort}")
+        report["source"] = "effort-export"
+        for name in names:
+            report["species"][name] = train_from_effort(
+                cfg, name, effort_rows, seed=args.seed, out_dir=out_dir,
+                model_dir=model_dir)
+    else:
+      with httpx.Client() as client:
         for name in names:
             report["species"][name] = train_species(
                 cfg, client, name, bbox=args.bbox,

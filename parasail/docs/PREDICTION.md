@@ -109,6 +109,43 @@ Outputs (all gitignored except the script):
 Run it whenever the occurrence data grows, or after changing the feature
 contract. `min_records` and the margin are at the top of the script.
 
+## Effort data — the catch-level path (ready, waiting for data)
+
+The presence-only pipeline above is capped by its data. An effort export
+removes that cap: a trip that applied effort and caught none of the target
+species is a **true absence**, and nothing in the open occurrence record can
+supply one. The code path is implemented and validated — it needs data.
+
+```bash
+python scripts/train_habitat.py --effort landings.csv        --species "Sardinella longiceps"
+```
+
+CSV columns (one row = one landing or trip):
+
+| Column | Meaning |
+|---|---|
+| `date` | `YYYY-MM-DD` (or ISO); used for time-block folds |
+| `lat`, `lon` | where the effort was applied |
+| `catch_kg` | catch of the target species; `0` is a valid, valuable row |
+| `effort_hours` | hours fished — also the sample weight |
+| `sst_c` | sea temperature at that place and date |
+| `distance_to_shore_km` | distance to shore (from the ocean mask or the export) |
+| `species` | optional; filters rows when given |
+
+What it reports that the presence-only path cannot:
+
+* **AUC** on **time-block** folds (date ranges held out, not cells — effort
+  records are dense and autocorrelated in space, so spatial folds leak);
+* **Spearman correlation between the model's score and observed CPUE** — the
+  honest "does the score track what was caught" number;
+* the envelope scored on the same rows, for a like-for-like comparison.
+
+An effort-trained model is published only when AUC ≥ 0.65, Spearman ≥ 0.20
+and it beats the envelope by the usual margin; otherwise the metrics are
+written and the envelope stays served. Both the adoption logic and the
+sample-size refusal (fewer than 20 positive or 20 absent rows) are covered by
+the T7 family.
+
 ## What would make it genuinely predictive
 
 1. **Effort data** (CMFRI landings/CPUE) — the only way to score catch

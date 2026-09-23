@@ -1,0 +1,42 @@
+name: validate
+
+# Runs the checks that do not need the network or the local data stack.
+# T1 (live fetch) skips with --skip-live; T4 (retrieval) skips with a reason
+# when Qdrant is absent - both report WHY rather than passing silently, which
+# is how a broken retrieval layer previously stayed invisible.
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # deliberately slim: the assistant's model stack (torch,
+          # sentence-transformers) is not needed for these families
+          pip install fastapi httpx pydantic pyyaml numpy scikit-learn \
+                      joblib qdrant-client pymupdf
+
+      - name: Python syntax across the repo
+        run: python -m compileall -q parasail/src parasail/scripts
+
+      - name: Validation suite (offline)
+        run: python parasail/scripts/run_validation.py --skip-live
+
+      - name: Deck geometry QA (committed PDFs)
+        run: |
+          cd parasail/../ParaSail_Paper
+          python qa_deck.py "ParaSail_Presentation (Ananthakrishnan AS).pdf"
+          python qa_deck.py "ParaSail_Presentation_TechnicalBackup (Ananthakrishnan AS).pdf"

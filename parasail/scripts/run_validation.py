@@ -36,6 +36,8 @@ Usage:  python scripts/run_validation.py [--skip-live]
 """
 from __future__ import annotations
 
+import json
+
 import argparse
 import sys
 import time
@@ -166,14 +168,43 @@ def t4_retrieval(cfg) -> None:
         "bycatch": ["bycatch", "juvenile", "mitigation"],
     }
     when = datetime(2026, 9, 14, 4, 0, tzinfo=timezone.utc)
+
+    # Is the corpus actually reachable? Without this the assertions below
+    # pass vacuously on zero passages - which is exactly how a broken
+    # retrieval layer stayed invisible. Unavailable infrastructure is
+    # SKIPPED with its reason; available infrastructure must return relevant
+    # passages or FAIL.
+    # probe over plain HTTP: the pinned qdrant-client and an older server can
+    # disagree on schema (get_collection fails to parse) while search works
+    # fine, so a client-wise probe would skip T4 even when retrieval is real
+    corpus_size, unavailable = 0, None
+    try:
+        import httpx as _httpx
+        url = (cfg.rag["qdrant_url"].rstrip("/")
+               + f"/collections/{cfg.rag['text_collection']}")
+        resp = _httpx.get(url, timeout=10)
+        resp.raise_for_status()
+        corpus_size = int((resp.json().get("result") or {}).get("points_count") or 0)
+        if corpus_size == 0:
+            unavailable = "corpus not seeded"
+    except Exception as exc:  # noqa: BLE001
+        unavailable = f"Qdrant unreachable ({type(exc).__name__})"
+
+    if unavailable:
+        for topic in queries:
+            record("T4", f"{topic}: top-k relevant (skipped - {unavailable})",
+                   True, "build + seed the corpus to enable")
+        return
+
     for topic, q in queries.items():
         try:
             ctx = rag.retrieve_context(q, "Sardinella longiceps",
                                        9.93, 76.26, when)
-            text = " ".join(p["text"].lower() for p in ctx["passages"])
-            ok = any(k in text for k in keywords[topic]) or not ctx["passages"]
+            passages = ctx["passages"]
+            text = " ".join(p["text"].lower() for p in passages)
+            ok = bool(passages) and any(k in text for k in keywords[topic])
             record("T4", f"{topic}: top-k relevant", ok,
-                   f"{len(ctx['passages'])} passages")
+                   f"{len(passages)} passages of {corpus_size} in corpus")
         except Exception as exc:  # noqa: BLE001
             record("T4", f"{topic}: retrieval executes", False, str(exc))
 
@@ -369,6 +400,46 @@ def t6_security(cfg) -> None:
         record("T6", "no keys configured -> privileged endpoints locked",
                r.status_code == 403 and "SECURITY.md" in r.json()["detail"])
 
+    # 5 - keys injected through the environment (secret managers, CI)
+    import os as _os
+    raw3 = copy.deepcopy(cfg.raw)
+    raw3["security"] = {"api_keys": []}          # nothing in config
+    _saved_env = _os.environ.get("PARASAIL_API_KEYS")
+    from parasail.assistant import MODEL_PREFS_PATH as _PREF2
+    _pref_before = None
+    try:
+        _pref_before = _PREF2.read_text(encoding="utf-8")
+    except Exception:  # noqa: BLE001
+        pass
+    try:
+        _os.environ["PARASAIL_API_KEYS"] = json.dumps(
+            [{"name": "env-admin", "key": "env-key-123", "role": "admin"}])
+        app3 = create_app(_Config(raw=raw3))
+        with TestClient(app3) as c3:
+            ok = c3.post("/assistant/model",
+                         json={"model": "qwen2.5vl-3b-laptop", "force": True},
+                         headers={"X-API-Key": "env-key-123"})
+            missing = c3.post("/assistant/model", json={"model": "x"})
+        record("T6", "PARASAIL_API_KEYS injects working keys (no config keys)",
+               ok.status_code == 200 and missing.status_code == 401,
+               f"env key -> {ok.status_code}, none -> {missing.status_code}")
+
+        _os.environ["PARASAIL_API_KEYS"] = "{not json"
+        app4 = create_app(_Config(raw=raw3))
+        with TestClient(app4) as c4:
+            r4 = c4.post("/assistant/model", json={"model": "x"},
+                         headers={"X-API-Key": "whatever"})
+        record("T6", "malformed PARASAIL_API_KEYS degrades safely (no crash)",
+               r4.status_code == 403,
+               "stays locked rather than failing open")
+    finally:
+        if _saved_env is None:
+            _os.environ.pop("PARASAIL_API_KEYS", None)
+        else:
+            _os.environ["PARASAIL_API_KEYS"] = _saved_env
+        if _pref_before is not None:
+            _PREF2.write_text(_pref_before, encoding="utf-8")
+
 
 def t7_prediction(cfg) -> None:
     """T7 - suggested-fish scorer: behaviour, honesty and graceful fallback.
@@ -412,6 +483,45 @@ def t7_prediction(cfg) -> None:
     cal = iso.predict(grid)
     record("T7", "isotonic calibrator is non-decreasing",
            bool(np.all(np.diff(cal) >= -1e-9)))
+
+    # 2b - the effort path (true absences + the CPUE correlation metric)
+    import tempfile as _tf
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    try:
+        import train_habitat as th
+        rng2 = np.random.default_rng(5)
+        n_rows = 140
+        good = rng2.random(n_rows) < 0.6
+        eff_rows = [{
+            "label": 1 if bool(g) else 0, "weight": 5.0,
+            "cpue": float(max(0.0, rng2.normal(40 if g else 2, 10))),
+            "lat": 9.5, "lon": 76.0, "month": 1 + (i % 12),
+            "sst_c": float(rng2.normal(27.5 if g else 29.5, 0.6)),
+            "distance_to_shore_km": float(rng2.uniform(5, 40) if g
+                                          else rng2.uniform(60, 140)),
+            "date": f"2026-{1 + i % 12:02d}-01", "source": "effort-export"}
+            for i, g in enumerate(good)]
+        with _tf.TemporaryDirectory() as td:
+            res = th.train_from_effort(cfg, "Sardinella longiceps", eff_rows,
+                                       seed=1, out_dir=Path(td),
+                                       model_dir=Path(td), log=lambda *_: None)
+        m = res.get("model") or {}
+        rho = m.get("spearman_score_cpue")
+        record("T7", "effort path trains on true absences and reports CPUE "
+                     "correlation",
+               bool(m) and 0.0 < m.get("auc", 0) <= 1.0
+               and rho is not None and -1.0 <= rho <= 1.0,
+               f"AUC {m.get('auc')} | Spearman {rho} | "
+               f"{m.get('n_presence')}+/{m.get('n_absence')}-")
+        # and it refuses to model a sample too small to mean anything
+        thin = th.train_from_effort(cfg, "Sardinella longiceps", eff_rows[:12],
+                                    seed=1, out_dir=Path("."),
+                                    model_dir=Path("."), log=lambda *_: None)
+        record("T7", "effort path refuses a sample too small to support a model",
+               thin.get("adopted") is False and thin.get("model") is None
+               and "at least 20" in (thin.get("reason") or ""))
+    except Exception as exc:  # noqa: BLE001
+        record("T7", "effort path trains on true absences", False, str(exc))
 
     # 3 - loader degrades: unknown species and missing artifact -> envelope
     record("T7", "loader returns None for an unknown species",

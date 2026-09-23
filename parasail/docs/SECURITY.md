@@ -112,3 +112,20 @@ Professional deployments add these around the app, not inside it:
 4. Route the `parasail.audit` logger to persistent storage.
 5. Re-run `python scripts/run_validation.py` — all six families,
    including T6, must pass.
+
+## Injecting API keys from the environment
+
+`security.api_keys` in config.yaml works for a single-operator deployment,
+but production keys belong in a secret manager. The same entries can be
+injected through the environment instead, or alongside the config:
+
+```bash
+export PARASAIL_API_KEYS='[{"name":"ops","key_hash":"<sha256>","role":"admin"}]'
+```
+
+Entries from the environment are appended to the configured ones, so you can
+keep non-secret placeholders in config and the real keys outside the
+repository (no key material — not even a hash — then lives in version
+control). Malformed JSON is ignored with a warning and the config keys keep
+working: a bad secret inject must not become an outage, and it must not fail
+open either. T6 asserts both behaviours.

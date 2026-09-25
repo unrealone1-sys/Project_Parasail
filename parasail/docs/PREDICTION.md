@@ -160,6 +160,49 @@ the T7 family.
 4. Then chlorophyll fronts and currents, which are the features fishers
    actually reason about — once they can be served live.
 
+## Fleet effort (Global Fishing Watch)
+
+AIS-derived effort is available and wired up: **daily, per-vessel fishing
+hours with position, flag and gear type**. Token lives in `parasail/.env`
+as `GFW_API_TOKEN` (gitignored).
+
+```bash
+python scripts/fetch_gfw_effort.py --start 2025-09-01 --end 2026-03-31        --bbox 68,6,80,23                     # writes data/gfw_effort_*.csv
+python scripts/analyse_effort_vs_mpa.py        # newest extract by default
+```
+
+Measured, Sep 2025–Mar 2026 over 68–80°E / 6–23°N (211 days):
+
+| | |
+|---|---|
+| records / effort | 197,907 records · **853,940 fishing hours** |
+| flags | IND 614,541 h · LKA 224,826 h · CHN 5,189 h |
+| gears | drifting longlines 413,462 h · trawlers 284,244 h · set longlines 39,209 h |
+| inside a protected area | **122 h — 0.014%**, all in Marine (Gulf of Kachchh) NP |
+| within 5 km of shore | 4,670 h — 0.5% (the fleet works offshore) |
+
+**What it is used for — and what it must not be used for.** Effort is a
+sampling-bias correction: background points can be weighted by where the
+fleet actually fished, so the model stops comparing "recorded" against
+"never visited". It is **not** a habitat feature — effort follows fish, so
+using it as a predictor is circular. And it is **not** catch, so it cannot
+produce the accuracy number on its own; landings remain the missing half.
+
+**Caveats that must travel with any number here:** AIS over-represents
+larger vessels, so small-boat activity near shore is under-counted; the
+inside-MPA figure is a compliance *signal*, not proof; and "0% of effort
+inside MPAs" is meaningless when the box contains no MPAs — we hit exactly
+that trap with the original 72–78°E box, where 0 of 2,682 sampled ocean
+points fell inside any registry polygon.
+
+**Attribution:** these extracts are Global Fishing Watch data; cite Global
+Fishing Watch when publishing anything derived from them.
+
+**Policy note for the paper:** §5.3 describes AIS as optional and disabled
+pending legal review. GFW publishes this effort openly, but using it as a
+model input is the operator's decision — if it is enabled, that sentence and
+the limitations section should be updated to say so.
+
 ## Validation
 
 `scripts/run_validation.py` family **T7** covers this offline: artifact

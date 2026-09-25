@@ -38,3 +38,10 @@ parasail/data/habitat_metrics.json
 
 # agent tool state
 .zcode/
+
+# local secrets: environment files are never committed
+.env
+**/.env
+
+# GFW effort extracts (regenerate with scripts/fetch_gfw_effort.py)
+parasail/data/gfw_effort_*

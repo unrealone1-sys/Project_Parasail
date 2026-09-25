@@ -200,7 +200,56 @@ the formulaic template text.
 
 ---
 
-## 7. What runs where (quick reference)
+## 7. Where the model files actually live
+
+**On this machine the model store is inside the project:**
+
+```
+parasail/
+├── models/                      <- OLLAMA_MODELS points here (3.0 GB)
+│   ├── blobs/sha256-*           the weights and config, content-addressed
+│   ├── manifests/registry.ollama.ai/library/qwen2.5vl/
+│   │     └── 3b                 the model tag "qwen2.5vl:3b"
+│   └── metadata/
+└── .env                         secrets only (GFW token etc.) - not models
+```
+
+Ollama reads that store because `OLLAMA_MODELS` is set to it — persistently
+(a user environment variable, so the tray autostart honours it after a
+reboot) and by `scripts/start_stack.ps1` when it launches the server. Check
+both facts with:
+
+```powershell
+echo $env:OLLAMA_MODELS      # -> C:\...\workspace\default\parasail\models
+ollama list                  # -> qwen2.5vl:3b   (read from the store above)
+```
+
+**Why this matters:** Ollama's default store is `~\.ollama\models` and on
+this machine it is deliberately **empty**. Start the server without
+`OLLAMA_MODELS` and it looks in the default store, finds nothing, and every
+answer silently degrades to the built-in template path — the symptom is "the
+AI stopped working" while the model server looks perfectly healthy. Use
+`scripts/start_stack.ps1`, which sets the variable.
+
+Adding or removing models in that store:
+
+```powershell
+$env:OLLAMA_MODELS = "C:\Users\ignun\.zcode\workspace\default\parasail\models"
+ollama pull qwen2.5vl:7b     # lands in parasail\models
+ollama list                  # both models listed
+ollama rm qwen2.5vl:7b       # removes it again
+```
+
+For the vLLM / Hugging Face route the weights go to `models/<registry-key>/`
+when bundled deliberately with `scripts/export_model.py`, or into the
+Hugging Face cache (`%USERPROFILE%\.cache\huggingface`) otherwise.
+
+`models/` is **gitignored** — 3 GB of weights do not belong in version
+control; the scripts that fetch or bundle them are tracked instead.
+
+---
+
+## 8. What runs where (quick reference)
 
 | Component | Port | Process |
 |---|---|---|
@@ -209,6 +258,6 @@ the formulaic template text.
 | vLLM model server | 8001 | Docker `--profile gpu` or WSL2 |
 | PostGIS / Qdrant | 5432 / 6333 | Docker (optional, for full advisory + retrieval) |
 
-Model files never live inside the project: Ollama manages
-`~\.ollama\models`, vLLM uses the HF cache / Docker volume, and
-`parasail\models\` is only for deliberately bundled offline copies.
+Model files live in `parasail\models\` on this machine (see §7 above) —
+that is the Ollama store `OLLAMA_MODELS` points at. The vLLM route uses
+`models\<registry-key>\` or the Hugging Face cache.

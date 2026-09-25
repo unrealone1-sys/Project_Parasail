@@ -80,6 +80,9 @@ Hard rules:
 1. Answer ONLY from the ADVISORY DATA, CONTEXT PASSAGES and attached IMAGES
    provided in the conversation. Never invent facts, numbers or rules.
 2. Cite every factual claim with the passage number it came from, like [1].
+   When CONTEXT PASSAGES are supplied you MUST cite at least one of them; an
+   answer with no citation is rejected by a checker and never reaches the
+   user, so a useful short answer with [1] beats a better one without.
 3. The ADVISORY CLASS is authoritative. Never contradict it, never soften a
    DO NOT FISH verdict, never encourage fishing in a blocked area or season.
 4. If the provided data does not answer the question, say so plainly and
@@ -492,6 +495,15 @@ class AssistantService:
             answer = self._chat(self._grounded_messages(
                 question, advisory, passages))
             if not self._check_grounded(answer, passages):
+                # small models often answer well but forget to cite; one
+                # explicit nudge recovers the LLM path without weakening the
+                # guard, which still rejects a second uncited attempt
+                log.info("summary uncited; retrying with a citation nudge")
+                answer = self._chat(self._grounded_messages(
+                    question + " Cite the passages you use as [1]..["
+                    + str(len(passages)) + "].",
+                    advisory, passages))
+            if not self._check_grounded(answer, passages):
                 log.warning("summary failed grounding check; using template")
                 return None
             answer = self._enforce_class_consistency(answer, advisory)
@@ -595,6 +607,13 @@ class AssistantService:
             try:
                 answer = self._chat(self._grounded_messages(
                     question, advisory, passages))
+                if not self._check_grounded(answer, passages):
+                    log.info("answer uncited; retrying with a citation nudge")
+                    answer = self._chat(self._grounded_messages(
+                        question + (" Cite the passages you use as [1]..["
+                                    + str(len(passages)) + "]."
+                                    if passages else ""),
+                        advisory, passages))
                 if not self._check_grounded(answer, passages):
                     answer = None
             except Exception as exc:  # noqa: BLE001

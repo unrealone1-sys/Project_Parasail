@@ -100,6 +100,9 @@ parasail/
 ├── README.md                  this file
 ├── requirements.txt           Python dependencies
 ├── config.yaml                region, species, closures, weights, models, assistant
+├── models/                    (gitignored) the AI weights live HERE on this
+│                              machine: OLLAMA_MODELS points at this folder
+├── .env                       (gitignored) local secrets: tokens, credentials
 ├── docker-compose.yml         api + postgres/postgis + qdrant + vllm (gpu profile) + ollama
 ├── db/schema.sql              PostGIS schema
 ├── docs/

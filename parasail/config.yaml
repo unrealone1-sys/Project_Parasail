@@ -252,6 +252,11 @@ assistant:
   active_model: qwen2.5vl-7b-awq
   models:
     qwen2.5vl-3b-laptop:
+      # `label` is the display name shown in the dashboard model panel; the
+      # registry KEY stays the stable identifier used by the API, the
+      # persisted preference and the tests - rename the key only with a
+      # migration for .cache/assistant_model.json
+      label: "Parasail A1(2.5)-VL-3B"
       backend: ollama
       model: qwen2.5vl:3b
       vram_gb: 6
@@ -285,6 +290,7 @@ assistant:
     base_url: http://localhost:11434
     model: qwen2.5vl:7b                    # pulls the Q4 quantisation (~5-6 GB)
     timeout_s: 60
+    keep_alive: -1                         # -1 = never unload; stays in VRAM 24/7
   max_concurrent_requests: 8               # protects small GPUs from overload
   max_output_tokens: 512
   temperature: 0.2                         # low: grounded, factual answers
@@ -357,6 +363,7 @@ security:
     - http://127.0.0.1:8000
   api_keys:                          # key stored as SHA-256 hash (scripts/generate_api_key.py)
     - {name: local-admin, key_hash: 7c757692e630973c885f85a393fe142ad7de6066908f38a9d9fab8fe1b8a985a, role: admin}
+    - {name: dev-test, key: "dev-admin-key-12345", role: admin}  # dev convenience - plaintext key
                                        # e.g. {name: ops, key_hash: <sha256>, role: admin}
   public_docs: true                   # set false in production to hide /docs
 

@@ -54,6 +54,18 @@ _ENCOURAGEMENT = re.compile(
     r"\b(safe to (?:fish|sail|go)|go ahead|good day to fish|fish anyway)\b",
     re.IGNORECASE)
 
+# An explicit verdict statement ("the verdict is STOP", "verdict: GO"). The
+# guard compares it with the authoritative advisory class: a model must never
+# announce a traffic light the scorer did not set - in EITHER direction.
+_VERDICT_CLAIM = re.compile(
+    r"verdict(?:\s+is)?[^.\n\u0964]{0,40}?\b"
+    r"(DO NOT FISH|STOP|GO CAREFULLY|GO|WAIT OR MOVE)\b",
+    re.IGNORECASE)
+
+# The scorer's class name and the dashboard's display word are the same
+# verdict; normalise before comparing a model's claim with the real one.
+_CLAIM_ALIASES = {"DO NOT FISH": "STOP"}
+
 # availability probe: short timeout + TTL cache so the dashboard can poll
 # the registry cheaply without hammering a down backend
 PROBE_TIMEOUT_S = 2.5
@@ -163,6 +175,7 @@ class AssistantService:
             model = m.get("model")
             out.append({
                 "key": key,
+                "label": m.get("label"),
                 "backend": backend,
                 "model": model,
                 "vram_gb": m.get("vram_gb"),
@@ -174,7 +187,7 @@ class AssistantService:
             })
         if not out:  # legacy config without a registry
             mc = self._model_conf()
-            out.append({**mc, "vram_gb": None, "download_gb": None,
+            out.append({**mc, "label": None, "vram_gb": None, "download_gb": None,
                         "description": "configured model",
                         "available": self._probe_availability(
                             mc.get("backend", "template"), mc.get("model")),
@@ -271,6 +284,7 @@ class AssistantService:
                 "options": {
                     "temperature": float(self.conf.get("temperature", 0.2)),
                     "num_predict": int(self.conf.get("max_output_tokens", 512)),
+                    "keep_alive": self.conf.get("ollama", {}).get("keep_alive", "10m"),
                 },
             }
             r = self._http().post("/v1/chat/completions", json=payload)
@@ -423,6 +437,25 @@ class AssistantService:
         cited = self._cited_indices(answer)
         return bool(cited) and cited <= set(range(1, len(passages) + 1))
 
+    def _contradicts_class(self, answer: str,
+                           advisory: dict | None) -> str | None:
+        """Detect an explicit verdict claim that disagrees with the scored
+        class (e.g. the model announces STOP while the scorer allowed the
+        trip). Returns the wrong word, or None when the answer is consistent.
+        A contradictory generation is discarded and the deterministic
+        template - which reads the real class - is served instead."""
+        if not advisory:
+            return None
+        cls = advisory.get("class")
+        if not cls:
+            return None
+        expected = CLASS_WORDS.get(cls, cls)
+        for claim in _VERDICT_CLAIM.findall(answer or ""):
+            claimed = _CLAIM_ALIASES.get(claim.upper(), claim.upper())
+            if claimed != expected.upper():
+                return claim.upper()
+        return None
+
     def _enforce_class_consistency(self, answer: str,
                                    advisory: dict | None) -> str:
         """The verdict line always accompanies the answer; the assistant can
@@ -505,6 +538,11 @@ class AssistantService:
                     advisory, passages))
             if not self._check_grounded(answer, passages):
                 log.warning("summary failed grounding check; using template")
+                return None
+            bad = self._contradicts_class(answer, advisory)
+            if bad:
+                log.warning("summary claimed verdict %r against class %r; "
+                            "using template", bad, advisory.get("class"))
                 return None
             answer = self._enforce_class_consistency(answer, advisory)
             points = self._split_points(answer)
@@ -616,6 +654,13 @@ class AssistantService:
                         advisory, passages))
                 if not self._check_grounded(answer, passages):
                     answer = None
+                else:
+                    bad = self._contradicts_class(answer, advisory)
+                    if bad:
+                        log.warning("answer claimed verdict %r against class "
+                                    "%r; using template", bad,
+                                    (advisory or {}).get("class"))
+                        answer = None
             except Exception as exc:  # noqa: BLE001
                 log.warning("assistant answer failed (%s); fallback", exc)
 

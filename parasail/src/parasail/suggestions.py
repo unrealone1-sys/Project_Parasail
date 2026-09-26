@@ -425,10 +425,17 @@ def fish_suggestions(cfg, ingestion, species_name: str,
     shore = _shore_dist_grid(lat, lon, GRID_HALF_DEG, GRID_STEP_DEG) \
         if model is not None else {}
 
+    def _val(d: dict, key: str):
+        """Extract value from TelemetryField or raw value."""
+        v = d.get(key)
+        if hasattr(v, 'value'):  # TelemetryField
+            return v.value
+        return v
+
     scored = []
     for p in points:
         d = data.get(p, {})
-        sst = d.get("sea_surface_temperature")
+        sst = _val(d, "sea_surface_temperature")
         if sst is None:
             continue
         cell = (int(round((p[0] - lat) / GRID_STEP_DEG)),

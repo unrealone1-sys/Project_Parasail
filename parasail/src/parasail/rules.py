@@ -6,10 +6,13 @@ and no score configuration can override it.
 """
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from datetime import datetime
 
 from .config import Config
+
+log = logging.getLogger("parasail.rules")
 
 # PostgreSQL/PostGIS query for MPA containment. Uses ST_Contains on the
 # 4326 polygons; the GiST index keeps this sub-millisecond at regional scale.
@@ -75,7 +78,9 @@ class RulesEngine:
             with self._connect() as conn, conn.cursor() as cur:
                 cur.execute(MPA_QUERY, {"lat": lat, "lon": lon, "ts": when})
                 row = cur.fetchone()
-        except Exception:  # noqa: BLE001 - unreachable DB fails closed, never open
+        except Exception as exc:  # noqa: BLE001 - unreachable DB fails closed, never open
+            log.warning("MPA registry unreachable at (%.4f, %.4f): %s: %s",
+                        lat, lon, type(exc).__name__, exc)
             return ConstraintResult(
                 True, "MPA registry unreachable - request cannot be cleared",
                 "system:fail-closed")

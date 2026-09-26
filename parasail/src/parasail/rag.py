@@ -170,6 +170,13 @@ class RagService:
         from qdrant_client.models import FieldCondition, Filter, MatchValue
 
         k = top_k or self.conf["top_k"]
+        # Spatial filtering happens AFTER ranking, so the candidate pool must
+        # be much wider than k: the registry holds one near-identical passage
+        # per protected area, and a query like "marine protected area" ranks
+        # every out-of-region park above the local ones. With a pool of only
+        # 2k those local passages are filtered away and retrieval returns
+        # almost nothing. Take a large pool, then filter, then cut to k.
+        pool = max(k * 6, 24)
         try:
             query_vec = self.encoder.encode(query).tolist()
 
@@ -178,7 +185,7 @@ class RagService:
                     key="species", match=MatchValue(value=species))])
                        if species_filter else None)
                 return self._search(self.client, self.conf["text_collection"],
-                                    query_vec, k, flt)
+                                    query_vec, pool, flt)
 
             # merge species-tagged and general hits, then rank by score: most
             # of the library (protected areas, system rules, regional news) is
@@ -190,10 +197,36 @@ class RagService:
                 key = (h.payload.get("citation"), h.payload.get("text", "")[:80])
                 if key not in merged or h.score > merged[key].score:
                     merged[key] = h
-            hits = sorted(merged.values(), key=lambda h: -h.score)[:k]
+            hits = sorted(merged.values(), key=lambda h: -h.score)
         except Exception as exc:  # noqa: BLE001 - retrieval must never block advice
             log.warning("text retrieval failed: %s", exc)
             hits = []
+
+        # Spatial filtering: keep only passages relevant to the query location.
+        # Documents with bbox containing the point are kept. Documents with
+        # very large bboxes (e.g., COAST_BBOX covering the whole study coast)
+        # are kept as they're general guidance. Documents with specific bboxes
+        # far from the point are filtered out.
+        def point_in_bbox(lat: float, lon: float, bbox: list | None) -> bool:
+            if not bbox or len(bbox) != 4:
+                return True  # no spatial constraint = general document
+            lon_min, lat_min, lon_max, lat_max = bbox
+            # Allow small tolerance for edge cases
+            return (lat_min - 0.1 <= lat <= lat_max + 0.1 and
+                    lon_min - 0.1 <= lon <= lon_max + 0.1)
+
+        filtered_hits = []
+        for h in hits:
+            bbox = h.payload.get("bbox")
+            if point_in_bbox(lat, lon, bbox):
+                filtered_hits.append(h)
+            else:
+                # Log filtered out passages for debugging
+                citation = h.payload.get("citation", "unknown")
+                log.debug("Filtered out passage (spatial mismatch): %s bbox=%s query=(%s,%s)",
+                          citation, bbox, lat, lon)
+
+        hits = filtered_hits[:k]
         passages = [{
             "text": h.payload.get("text", ""),
             "source": h.payload.get("source"),

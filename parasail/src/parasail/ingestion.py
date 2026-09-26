@@ -35,9 +35,39 @@ class SourcedField:
     variable: str            # sst, chlorophyll_a, wind_speed, wave_height, ...
     source: str              # open-meteo, copernicus, erddap
     value: float
-    ts: str                  # ISO-8601 UTC
-    fetched_at: str
-    age_hours: float
+    ts: str                  # ISO-8601 UTC (valid time of the forecast)
+    fetched_at: str          # ISO-8601 UTC (when we actually fetched it)
+    age_hours: float         # hours since fetch (0 = live, >0 = cached)
+    stale: bool              # True -> served from cache under outage
+
+
+@dataclass
+class AlertItem:
+    """One security/disaster alert for a region."""
+    id: str
+    title: str
+    description: str
+    severity: str            # extreme, severe, moderate, minor, info
+    urgency: str             # immediate, expected, future, past
+    certainty: str           # observed, likely, possible, unlikely
+    event_type: str          # cyclone, flood, tsunami, storm_surge, high_wind, etc.
+    areas: list[str]         # affected districts/coastal zones
+    issued_at: str           # ISO-8601 UTC
+    expires_at: str | None   # ISO-8601 UTC or None
+    source: str              # IMD, INCOIS, NDMA, CAP, SAC
+    source_url: str | None
+    languages: dict[str, str]  # language_code -> localized title/description
+
+
+@dataclass
+class TelemetryField:
+    """One telemetry value with exact retrieval provenance."""
+    variable: str            # wind_speed_10m, wave_height, etc.
+    source: str              # open-meteo, copernicus, erddap
+    value: float
+    ts: str                  # ISO-8601 UTC (valid time of the forecast)
+    fetched_at: str          # ISO-8601 UTC (when we actually fetched it from provider)
+    age_hours: float         # hours since fetch (0 = live fetch, >0 = cached)
     stale: bool              # True -> served from cache under outage
 
 
@@ -129,7 +159,7 @@ class OpenMeteoSource:
                      hours: int = 24,
                      groups: tuple = ("core_weather", "ext_weather",
                                       "core_marine", "ext_marine")
-                     ) -> dict[tuple[float, float], dict]:
+                     ) -> dict[tuple[float, float], dict[str, TelemetryField]]:
         """Batched current-conditions fetch for a grid of points.
 
         Open-Meteo accepts comma-separated coordinate lists and answers with
@@ -138,6 +168,9 @@ class OpenMeteoSource:
         `groups` selects which variable groups are fetched (the suggestion
         layer needs only the two core groups). Values are taken at the hour
         closest to now. Each variable group degrades independently.
+
+        Returns: dict mapping (lat, lon) -> dict of variable -> TelemetryField
+        (includes fetched_at, age_hours, stale per field).
         """
         if not points:
             return {}
@@ -147,8 +180,9 @@ class OpenMeteoSource:
             "core_marine": (f"{self.marine_base}/marine", self.CORE_MARINE),
             "ext_marine": (f"{self.marine_base}/marine", self.EXT_MARINE),
         }
-        out: dict[tuple[float, float], dict] = {p: {} for p in points}
+        out: dict[tuple[float, float], dict[str, TelemetryField]] = {p: {} for p in points}
         CHUNK = 100
+        fetched_at = datetime.now(timezone.utc).isoformat()
         for start in range(0, len(points), CHUNK):
             chunk = points[start:start + CHUNK]
             lats = ",".join(f"{p[0]:.4f}" for p in chunk)
@@ -185,7 +219,15 @@ class OpenMeteoSource:
                                  and values[idx] is not None
                                  else next((v for v in values if v is not None), None))
                         if value is not None:
-                            out[point][var] = float(value)
+                            out[point][var] = TelemetryField(
+                                variable=var,
+                                source="open-meteo",
+                                value=float(value),
+                                ts=hourly.get("time", [""])[idx] + ":00Z" if idx < len(hourly.get("time", [])) else fetched_at,
+                                fetched_at=fetched_at,
+                                age_hours=age,
+                                stale=cached,
+                            )
         return out
 
     def fetch_point(self, lat: float, lon: float,
@@ -262,6 +304,215 @@ class ErddapSource:
 
 
 # --------------------------------------------------------------------------- #
+# Security/Disaster Alerts (IMD, INCOIS, NDMA, CAP) - public safety
+# --------------------------------------------------------------------------- #
+class AlertSource:
+    """Fetches official disaster/weather alerts for Indian coastal regions.
+    
+    Sources (all public, no auth required):
+      - IMD (India Meteorological Department): cyclone, heavy rain, heat wave
+      - INCOIS (Indian National Centre for Ocean Information Services):
+        tsunami, storm surge, high waves, swell surge
+      - NDMA (National Disaster Management Authority): multi-hazard alerts
+      - CAP (Common Alerting Protocol) feeds via NDMA/IMD
+      - SAC (Space Applications Centre): satellite-based alerts
+    
+    All endpoints return CAP/XML or JSON; we normalise to AlertItem.
+    """
+
+    # Regional CAP/JSON endpoints (public, no key)
+    ENDPOINTS = {
+        "imd": "https://mausam.imd.gov.in/backend/api/cap",
+        "incois": "https://incois.gov.in/api/alerts",
+        "ndma": "https://ndma.gov.in/api/alerts",
+        "cap_india": "https://cap.ndma.gov.in/feed",
+        "sac": "https://sac.gov.in/api/alerts",
+    }
+
+    def __init__(self, cfg: Config):
+        conf = cfg.ingestion.get("alerts", {})
+        self.cache_dir = Path(conf.get("cache_dir", ".cache/alerts"))
+        self.cache_dir.mkdir(parents=True, exist_ok=True)
+        self.freshness_hours = conf.get("freshness_hours", 1)  # alerts: 1h freshness
+        self.timeout = conf.get("timeout_s", 15.0)
+
+    def _fetch_one(self, name: str, url: str) -> list[AlertItem]:
+        """Fetch and normalise alerts from one source."""
+        cache_file = self.cache_dir / f"{name}.json"
+        try:
+            with httpx.Client(timeout=self.timeout) as client:
+                resp = client.get(url)
+                resp.raise_for_status()
+                raw = resp.text
+            # Cache successful fetch
+            cache_file.write_text(raw, encoding="utf-8")
+            return self._parse_alerts(name, raw)
+        except Exception as exc:  # noqa: BLE001
+            log.warning("alerts %s fetch failed (%s); using cache", name, exc)
+            if cache_file.exists():
+                raw = cache_file.read_text(encoding="utf-8")
+                return self._parse_alerts(name, raw)
+            return []
+
+    def _parse_alerts(self, source: str, raw: str) -> list[AlertItem]:
+        """Parse CAP/XML or JSON into AlertItem list."""
+        import xml.etree.ElementTree as ET
+        items: list[AlertItem] = []
+        try:
+            # Try JSON first (some endpoints)
+            data = json.loads(raw)
+            if isinstance(data, dict):
+                data = data.get("alerts") or data.get("features") or [data]
+            for a in data if isinstance(data, list) else []:
+                items.append(self._normalise_alert(source, a, is_json=True))
+            return items
+        except json.JSONDecodeError:
+            pass
+        # Try CAP/XML
+        try:
+            root = ET.fromstring(raw)
+            for alert in root.findall(".//{urn:oasis:names:tc:emergency:cap:1.2}alert"):
+                items.append(self._normalise_alert(source, alert, is_json=False))
+            return items
+        except ET.ParseError:
+            log.warning("alerts %s: unparseable response", source)
+            return []
+
+    def _normalise_alert(self, source: str, data: Any, is_json: bool) -> AlertItem | None:
+        """Convert source-specific format to AlertItem."""
+        try:
+            if is_json:
+                # Common JSON fields across IMD/INCOIS/NDMA
+                event = data.get("event") or data.get("eventType") or "unknown"
+                return AlertItem(
+                    id=str(data.get("identifier") or data.get("id") or hashlib.md5(str(data).encode()).hexdigest()[:12]),
+                    title=data.get("headline") or data.get("title") or event,
+                    description=data.get("description") or data.get("instruction") or "",
+                    severity=(data.get("severity") or "moderate").lower(),
+                    urgency=(data.get("urgency") or "expected").lower(),
+                    certainty=(data.get("certainty") or "likely").lower(),
+                    event_type=self._map_event_type(event),
+                    areas=[a for a in (data.get("areas") or data.get("geocode") or "").split(",") if a],
+                    issued_at=data.get("sent") or data.get("issuedAt") or data.get("effective") or datetime.now(timezone.utc).isoformat(),
+                    expires_at=data.get("expires") or data.get("expiresAt") or None,
+                    source=source.upper(),
+                    source_url=data.get("url") or data.get("link") or None,
+                    languages=self._extract_languages(data),
+                )
+            else:
+                # CAP XML
+                ns = {"cap": "urn:oasis:names:tc:emergency:cap:1.2"}
+                info = data.find("cap:info", ns)
+                if info is None:
+                    return None
+                event = info.findtext("cap:event", default="unknown", namespaces=ns)
+                return AlertItem(
+                    id=data.findtext("cap:identifier", default="", namespaces=ns) or hashlib.md5(ET.tostring(data)).hexdigest()[:12],
+                    title=info.findtext("cap:headline", default=event, namespaces=ns),
+                    description=info.findtext("cap:description", default="", namespaces=ns),
+                    severity=(info.findtext("cap:severity", default="Moderate", namespaces=ns)).lower(),
+                    urgency=(info.findtext("cap:urgency", default="Expected", namespaces=ns)).lower(),
+                    certainty=(info.findtext("cap:certainty", default="Likely", namespaces=ns)).lower(),
+                    event_type=self._map_event_type(event),
+                    areas=[a.text for a in info.findall("cap:area/cap:areaDesc", ns) if a.text],
+                    issued_at=data.findtext("cap:sent", default="", namespaces=ns) or datetime.now(timezone.utc).isoformat(),
+                    expires_at=info.findtext("cap:expires", default=None, namespaces=ns),
+                    source=source.upper(),
+                    source_url=info.findtext("cap:web", default=None, namespaces=ns),
+                    languages={},
+                )
+        except Exception as exc:  # noqa: BLE001
+            log.warning("alerts %s: normalise failed (%s)", source, exc)
+        return None
+
+    @staticmethod
+    def _map_event_type(event: str) -> str:
+        """Map free-text event to standardised type."""
+        e = event.lower()
+        if any(k in e for k in ("cyclone", "hurricane", "typhoon")):
+            return "cyclone"
+        if any(k in e for k in ("tsunami",)):
+            return "tsunami"
+        if any(k in e for k in ("storm surge", "storm-surge")):
+            return "storm_surge"
+        if any(k in e for k in ("high wave", "swell surge", "rough sea")):
+            return "high_waves"
+        if any(k in e for k in ("heavy rain", "extreme rain", "cloudburst")):
+            return "heavy_rain"
+        if any(k in e for k in ("flood", "inundation")):
+            return "flood"
+        if any(k in e for k in ("heat wave", "heatwave")):
+            return "heat_wave"
+        if any(k in e for k in ("high wind", "gale", "squall")):
+            return "high_wind"
+        if any(k in e for k in ("thunderstorm", "lightning")):
+            return "thunderstorm"
+        return "other"
+
+    def _extract_languages(self, data: dict) -> dict[str, str]:
+        """Extract localised text if available (IMD provides Hindi/English)."""
+        out = {"en": data.get("headline") or data.get("title") or ""}
+        if "headline_hi" in data:
+            out["hi"] = data["headline_hi"]
+        if "description_hi" in data:
+            out["hi"] = out.get("hi", "") + " | " + data["description_hi"]
+        return out
+
+    def fetch_for_location(self, lat: float, lon: float, radius_km: float = 200) -> list[AlertItem]:
+        """Fetch all alerts, filter to those affecting the given location.
+
+        Uses a simple text-based area match as a first pass. For production,
+        proper geospatial filtering against alert polygons should be implemented
+        when the sources provide structured geometry (CAP <area> with polygons).
+        """
+        all_alerts: list[AlertItem] = []
+        for name, url in self.ENDPOINTS.items():
+            all_alerts.extend(self._fetch_one(name, url))
+
+        # First, try to match by coordinate using known district/state names
+        # for the given location. This is a best-effort text-based filter.
+        # In production, we'd use a reverse geocoder to get the district/state
+        # and then match against alert.areas, or parse CAP <area> polygons.
+        relevant = []
+        for alert in all_alerts:
+            # If no areas specified, assume it's relevant (broadcast alert)
+            if not alert.areas:
+                relevant.append(alert)
+                continue
+
+            # Simple text match on known coastal districts/states
+            # This is a lightweight filter; proper implementation needs
+            # a geocoding service or polygon containment check
+            for area in alert.areas:
+                area_lower = area.lower()
+                # Match against known Indian coastal states/districts
+                coastal_keywords = [
+                    "kerala", "karnataka", "goa", "maharashtra", "gujarat",
+                    "tamil nadu", "andhra pradesh", "odisha", "west bengal",
+                    "lakshadweep", "andaman", "nicobar", "puducherry",
+                    "daman", "diu", "kutch", "saurashtra", "konkan",
+                    "malabar", "coromandel", "sundarbans", "godavari",
+                    "krishna", "kaveri", "mahandi", "brahmaputra",
+                    "kochi", "mangalore", "chennai", "visakhapatnam",
+                    "paradip", "haldia", "kandla", "mormugao", "new mangalore",
+                    "tuticorin", "ennore", "gangavaram", "kakinada",
+                    "nagapattinam", "cuddalore", "pondicherry", "karaikal",
+                    "ernakulam", "alappuzha", "kollam", "thiruvananthapuram",
+                    "kasaragod", "kannur", "kozhikode", "malappuram",
+                    "thrissur", "palakkad", "idukki", "kottayam", "pathanamthitta"
+                ]
+                if any(kw in area_lower for kw in coastal_keywords):
+                    relevant.append(alert)
+                    break
+
+        # Sort: most severe/urgent first
+        severity_order = {"extreme": 0, "severe": 1, "moderate": 2, "minor": 3, "info": 4}
+        urgency_order = {"immediate": 0, "expected": 1, "future": 2, "past": 3}
+        relevant.sort(key=lambda a: (severity_order.get(a.severity, 5), urgency_order.get(a.urgency, 5)))
+        return relevant
+
+
+# --------------------------------------------------------------------------- #
 # Occurrence corpora (GBIF via pygbif; OBIS analogous) - training data
 # --------------------------------------------------------------------------- #
 def fetch_gbif_occurrences(scientific_name: str, bbox: list[float],
@@ -316,6 +567,7 @@ class IngestionService:
         self.cfg = cfg
         self.open_meteo = OpenMeteoSource(cfg)
         self.erddap = ErddapSource(cfg)
+        self.alerts = AlertSource(cfg)
 
     def weather_fields(self, lat, lon, start, hours) -> list[SourcedField]:
         return self.open_meteo.fetch_point(lat, lon, start, hours)
@@ -323,3 +575,6 @@ class IngestionService:
     def environmental_fields(self, ts: str) -> list[SourcedField]:
         return self.erddap.fetch_grid(
             "noaaCoastwatchSST", "sst", self.cfg.region["bbox"], ts)
+
+    def alerts_for_location(self, lat: float, lon: float, radius_km: float = 200) -> list[AlertItem]:
+        return self.alerts.fetch_for_location(lat, lon, radius_km)

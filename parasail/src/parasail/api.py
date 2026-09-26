@@ -32,6 +32,7 @@ from __future__ import annotations
 import functools
 import json
 import logging
+import time
 from datetime import datetime, timezone
 
 import httpx
@@ -43,7 +44,7 @@ from pydantic import BaseModel, Field
 from .advisory import AdvisoryEngine
 from .assistant import AssistantService, ModelUnavailableError
 from .config import Config, load_config
-from .ingestion import IngestionService
+from .ingestion import IngestionService, TelemetryField, AlertItem
 from .rag import RagService
 from .rules import RulesEngine
 from .security import (RateLimiter, SecurityMiddleware, add_cors, audit,
@@ -203,10 +204,14 @@ UI_PAGE = """<!DOCTYPE html>
  select,input{width:100%;padding:10px 12px;border:1.5px solid #C7D8DD;border-radius:8px;font-size:15px;color:#16323D;background:#fff}
  button.go{background:#E76F51;color:#fff;border:0;border-radius:9px;padding:12px 28px;font-size:15.5px;font-weight:700;cursor:pointer;min-width:170px}
  button.go:disabled{opacity:.6;cursor:wait}
- .main{display:grid;grid-template-columns:1.25fr 1fr;gap:18px}
+ .main{display:grid;grid-template-columns:1.25fr 1fr;gap:18px;align-items:start;grid-auto-rows:auto}
  @media(max-width:900px){.main{grid-template-columns:1fr}}
- .mapcard{padding:12px}
- #map{height:430px;border-radius:10px;z-index:1}
+ /* The map card is sized by JS to match the live-telemetry card exactly
+    (syncMapHeight): equal heights, and the map never grows or shrinks when
+    the advice result card appears. The fixed height below is the pre-JS
+    fallback. */
+ .mapcard{padding:12px;align-self:start;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+ #map{flex:1 1 auto;min-height:260px;height:430px;border-radius:10px;z-index:1}
  .coords{font-size:12.5px;color:#6B8290;text-align:center;padding:9px 4px 2px}
  .sectitle{font-family:'Lora',Georgia,serif;font-size:17px;font-weight:700;color:#0E4A54;margin-bottom:12px}
  .verdict{display:flex;align-items:center;gap:20px;padding:4px 2px}
@@ -318,6 +323,17 @@ UI_PAGE = """<!DOCTYPE html>
  .mpnote{font-size:12px;color:#6B8290}
  .mpghost{background:none;border:1.5px solid #C7D8DD;color:#0E4A54;border-radius:8px;padding:7px 14px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;transition:border-color .15s,background .15s;white-space:nowrap}
  .mpghost:hover{border-color:#14707C;background:#E3EFF1}
+ /* admin panel */
+ .admingrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:10px}
+ .admcard{background:#fff;border:1.5px solid #D5E3E8;border-radius:12px;padding:14px 16px;animation:fadeUp .3s ease both}
+ .admcard h4{margin:0 0 8px;font-size:13px;font-weight:700;color:#0E4A54;border-bottom:1px solid #E3EFF1;padding-bottom:8px}
+ .admrow{display:flex;justify-content:space-between;padding:4px 0;font-size:12.5px}
+ .admrow .k{color:#4A6B75}
+ .admrow .v{color:#16323D;font-weight:600}
+ .admrow .v.ok{color:#4C9A57}
+ .admrow .v.warn{color:#D9A62E}
+ .admrow .v.bad{color:#C94F4F}
+ .admgrid.single{grid-template-columns:1fr}
  .maptools{display:flex;gap:8px;justify-content:center;padding:2px 2px 10px;flex-wrap:wrap}
  .maptools button{background:#E3EFF1;color:#0E4A54;border:0;border-radius:8px;padding:7px 15px;font-size:12.5px;font-weight:700;cursor:pointer;transition:background .15s,transform .12s}
  .maptools button:hover{background:#D2E4E8;transform:translateY(-1px)}
@@ -394,22 +410,23 @@ UI_PAGE = """<!DOCTYPE html>
    <h1>ParaSail</h1>
    <p class="tag" data-tr>A smart guide for safer fishing &mdash; is it safe, are the fish there, is it allowed?</p>
   </div>
-   <div class="hright">
-    <select id="lang" onchange="applyLanguage()" title="Language">
-     <option value="en">English</option>
-     <option value="ml">മലയാളം</option>
-     <option value="ta">தமிழ்</option>
-     <option value="kn">ಕನ್ನಡ</option>
-     <option value="te">తెలుగు</option>
-     <option value="mr">मराठी</option>
-     <option value="gu">ગુજરાતી</option>
-     <option value="bn">বাংলা</option>
-     <option value="or">ଓଡ଼ିଆ</option>
-     <option value="hi">हिन्दी</option>
-    </select>
-    <button id="installbtn" class="hidden" data-tr onclick="installApp()">Install app</button>
-    <div class="pill"><span class="dot"></span><span id="pilltext">checking...</span></div>
-   </div>
+<div class="hright">
+     <select id="lang" onchange="applyLanguage()" title="Language">
+      <option value="en">English</option>
+      <option value="ml">മലയാളം</option>
+      <option value="ta">தமிழ்</option>
+      <option value="kn">ಕನ್ನಡ</option>
+      <option value="te">తెలుగు</option>
+      <option value="mr">मराठी</option>
+      <option value="gu">ગુજરાતી</option>
+      <option value="bn">বাংলা</option>
+      <option value="or">ଓଡ଼ିଆ</option>
+      <option value="hi">हिन्दी</option>
+     </select>
+     <button id="installbtn" class="hidden" data-tr onclick="installApp()">Install app</button>
+     <button id="adminbtn" class="pill" onclick="openAdminPanel()" style="background:#12455A;border:1px solid #2A5A6E;color:#D9EAED;border-radius:999px;padding:7px 16px;font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:8px" data-tr title="Admin dashboard (requires API key)">Admin <span class="dot" style="background:#C94F4F"></span></button>
+     <div class="pill"><span class="dot"></span><span id="pilltext">checking...</span></div>
+    </div>
  </header>
 
  <div class="card controls">
@@ -451,7 +468,7 @@ UI_PAGE = """<!DOCTYPE html>
     <div class="note" id="note"></div>
     <details><summary data-tr>Full data (JSON)</summary><pre id="raw"></pre></details>
    </div>
-   <div class="card">
+   <div class="card" id="telemcard">
     <div class="sectitle" data-tr>Live telemetry</div>
     <div class="tgroup" data-tr>Weather</div>
     <div class="tgrid">
@@ -474,13 +491,22 @@ UI_PAGE = """<!DOCTYPE html>
      <div class="t wide"><div class="tv" id="t_utc">&ndash;</div><div class="tl" data-tr>time (utc)</div></div>
      <div class="t wide"><div class="tv" id="t_power">&ndash;</div><div class="ts" id="t_power_s"></div><div class="tl" data-tr>power</div></div>
     </div>
-    <details class="srcdetails"><summary data-tr>Where the data comes from</summary><div class="srcinfo" id="srcinfo"></div></details>
+<details class="srcdetails"><summary data-tr>Where the data comes from</summary><div class="srcinfo" id="srcinfo"></div></details>
     <div class="note" id="t_note">pick a location to see live conditions</div>
    </div>
   </div>
  </div>
 
- <div class="card spots hidden" id="spots">
+<div class="card hidden" id="alertscard">
+  <div class="chattop">
+   <div class="sectitle" style="margin-bottom:0" data-tr>Security Alerts</div>
+   <span id="alertscount" class="note"></span>
+  </div>
+  <div id="alertslist"></div>
+  <div class="note" id="alertsnote" data-tr>Official alerts from IMD, INCOIS, NDMA, CAP India, SAC. Auto-refreshes every 5 minutes.</div>
+ </div>
+
+<div class="card spots hidden" id="spots">
   <div class="sectitle" id="spots_title">Likely spots</div>
   <div class="spotrow" id="spotrow"></div>
   <div class="note" id="spots_note"></div>
@@ -527,12 +553,27 @@ UI_PAGE = """<!DOCTYPE html>
     <button class="mpghost" onclick="refreshModels()" data-tr>Re-check status</button>
    </div>
   </div>
+</div>
+
+<div id="adminov" class="modalov" onclick="if(event.target===this)closeAdminPanel()">
+ <div class="mpanel" role="dialog" aria-modal="true" aria-label="Admin dashboard">
+  <div class="mphead">
+   <div class="sectitle" style="margin-bottom:0" data-tr>Admin Dashboard</div>
+   <button class="mpx" onclick="closeAdminPanel()" aria-label="Close">&#215;</button>
+  </div>
+  <div class="mpsub" data-tr>System health, service status, and request statistics. Requires admin API key.</div>
+  <div id="admincontent"></div>
+  <div class="mpfoot">
+   <span class="mpnote" id="adminnote"></span>
+   <button class="mpghost" onclick="refreshAdminStats()" data-tr>Refresh</button>
+  </div>
  </div>
+</div>
 
  <footer>Anantha Krishnan AS &middot; Naipunnya School of Management, Cherthala, India<br>
  26th Digital Blue Economy Summit &middot; <a href="/docs">API documentation</a> &middot; <a href="/health">service status</a> &middot; map &copy; OpenStreetMap contributors<br>
- Protected-area boundaries: WDPCA (UNEP-WCMC &amp; IUCN) &middot; OpenStreetMap contributors (ODbL)<br>
- Typeface: Lora by Olga Karpushina &amp; Alexei Vanyashi, Cyreal Fonts (SIL Open Font License)</footer>
+ Protected-area boundaries: WDPCA (UNEP-WCMC & IUCN) &middot; OpenStreetMap contributors (ODbL)<br>
+ Typeface: Lora by Olga Karpushina & Alexei Vanyashi, Cyreal Fonts (SIL Open Font License)</footer>
 </div>
 <script src="/static/leaflet.js"></script>
 <script>
@@ -563,6 +604,26 @@ try{
 }catch(e){
  document.getElementById('coords').textContent='map unavailable - choose a city above; everything else works';
 }
+
+/* ---- map card height follows the live-telemetry card ----
+   The two cards then end on the same line (clean two-column look), and the
+   map keeps that height when the advice result card is revealed: only the
+   right column grows. Below 900px the grid stacks, so the sync is disabled
+   and the map falls back to its CSS height. */
+var _mapSyncT=null;
+function syncMapHeight(){
+ if(_mapSyncT){clearTimeout(_mapSyncT);}
+ _mapSyncT=setTimeout(function(){
+  var mc=document.querySelector('.mapcard'),tc=document.getElementById('telemcard');
+  if(!mc||!tc)return;
+  if(window.innerWidth<=900){mc.style.height='';if(map)map.invalidateSize();return;}
+  var h=tc.getBoundingClientRect().height;
+  if(h<200)return;                       /* telemetry not laid out yet */
+  mc.style.height=Math.round(h)+'px';
+  if(map)map.invalidateSize();
+ },60);
+}
+window.addEventListener('resize',syncMapHeight);
 
 /* ---- user markers: save places on the map (persisted per browser) ---- */
 function toggleMarkerMode(){
@@ -670,6 +731,9 @@ function setLoc(lat,lon,label){
  if(locM)locM.setLatLng([state.lat,state.lon]);
  document.getElementById('coords').textContent=state.lat.toFixed(3)+'\u00B0N, '+state.lon.toFixed(3)+'\u00B0E - '+(label||'custom (picked on map)');
  if(!label)document.getElementById('city').value='custom';
+ refreshTelemetry();
+ loadNews();
+ loadAlerts();
 }
 function cityChange(){
  const c=CITIES[document.getElementById('city').value];
@@ -678,6 +742,7 @@ function cityChange(){
  if(map)map.panTo([c.lat,c.lon]);
  refreshTelemetry();
  loadNews();
+ loadAlerts();
 }
 
 /* ---- translation: every visible string flows through the in-site translator ---- */
@@ -699,6 +764,7 @@ async function applyLanguage(restore){
  }catch(e){/* stay in English */}
  buildSpeciesSelect();   /* vernacular species names follow the language */
  loadNews();   /* the briefing is server-localized per language */
+ syncMapHeight();   /* translated labels can change the telemetry card height */
 }
 async function setText(el,en){
  markTr(el,en);
@@ -737,7 +803,12 @@ function buildSpeciesSelect(){
   o.textContent=speciesLabel(s);   /* already localized - no markTr */
   sel.appendChild(o);
  });
- if(cur)sel.value=cur;
+ /* clearing innerHTML leaves selectedIndex at -1, so the select would hand
+    an EMPTY species to the advisory (-> "not in registry" STOP). Restore the
+    previous choice, else select the first species explicitly. */
+ var keep=SPECIES.some(function(s){return s.scientific_name===cur;});
+ if(keep){sel.value=cur;}
+ else if(SPECIES.length){sel.selectedIndex=0;}
 }
 function loadSpecies(){
  fetch('/species').then(function(r){return r.json();}).then(function(list){
@@ -757,7 +828,11 @@ window.onload=function(){
  loadMarkers();
  loadModels();
  refreshTelemetry();
+ syncMapHeight();
  loadNews();
+ loadAlerts();
+ // Auto-refresh alerts every 5 minutes
+ setInterval(loadAlerts, 5*60*1000);
  try{const saved=localStorage.getItem('parasail_lang');
   if(saved&&saved!=='en'){document.getElementById('lang').value=saved;applyLanguage();}}catch(e){}
 };
@@ -828,6 +903,61 @@ async function refreshTelemetry(){
   setV('t_note','live readings at your point ('+new Date().toLocaleTimeString()+')');
  }catch(e){
   setV('t_note','telemetry unavailable - check the connection');
+ }
+ syncMapHeight();
+}
+
+/* ---- security alerts: IMD cyclones, INCOIS tsunami, NDMA, CAP, SAC ---- */
+async function loadAlerts(){
+ const card=document.getElementById('alertscard');
+ const list=document.getElementById('alertslist');
+ const count=document.getElementById('alertscount');
+ try{
+  const r=await fetch('/alerts?lat='+state.lat+'&lon='+state.lon);
+  const d=await r.json();
+  if(d.count>0){
+   card.classList.remove('hidden');
+   count.textContent=d.count+' alert'+(d.count>1?'s':'')+' \u00B7 updated '+new Date(d.retrieved_at).toLocaleTimeString();
+   list.innerHTML='';
+   d.alerts.forEach(function(a){
+    const sevColors={'extreme':'#C94F4F','severe':'#D97E35','moderate':'#D9A62E','minor':'#14707C','info':'#4A6B75'};
+    const sevColor=sevColors[a.severity]||'#6B8290';
+    const div=document.createElement('div');
+    div.className='newsitem';
+    div.style.borderLeftColor=sevColor;
+    const issued=new Date(a.issued_at);
+    const expires=a.expires_at?new Date(a.expires_at):null;
+    const now=new Date();
+    let timeLeft='';
+    if(expires && expires > now){
+     const diff=expires - now;
+     const hrs=Math.floor(diff/3600000);
+     const mins=Math.floor((diff%3600000)/60000);
+     timeLeft=' <span style="color:'+sevColor+'">expires in '+(hrs>0?hrs+'h ':'')+mins+'m</span>';
+    }
+    var h=document.createElement('div');
+    h.className='nh';
+    var tag=document.createElement('span');
+    tag.className='ntag';
+    tag.style.background=sevColor;
+    tag.textContent=a.severity.toUpperCase()+' \u00B7 '+a.event_type.toUpperCase();
+    h.appendChild(tag);
+    h.appendChild(document.createTextNode(' '+a.title+timeLeft));
+    var b=document.createElement('div');
+    b.className='nb';
+    b.textContent=a.description;
+    var areas=a.areas&&a.areas.length?('Areas: '+a.areas.join(', ')):'';
+    var s=document.createElement('div');
+    s.className='nsrc';
+    s.textContent=areas+' | '+a.source+(a.source_url?' \u00B7 <a href="'+a.source_url+'" target="_blank">source</a>':'')+(a.languages&&a.languages.hi?' | \u0939\u093f\u0928\u094d\u0926\u0940: '+a.languages.hi:'');
+    div.appendChild(h);div.appendChild(b);div.appendChild(s);
+    list.appendChild(div);
+   });
+  }else{
+   card.classList.add('hidden');
+  }
+ }catch(e){
+  card.classList.add('hidden');
  }
 }
 
@@ -933,14 +1063,15 @@ function activeModel(){
  return m;
 }
 function renderModelBtn(){
- const m=activeModel();const dot=document.getElementById('modeldot');
- const lbl=document.getElementById('modelbtnlabel');const btn=document.getElementById('modelbtn');
- if(!m){lbl.textContent='AI: built-in';dot.className='mdot';btn.title='The assistant runs in built-in mode';return;}
- lbl.textContent='AI: '+m.key;
- dot.className='mdot '+(m.available?'ok':'bad');
- btn.title=m.available?('AI model: '+m.key+' - ready')
-  :('AI model: '+m.key+' - NOT installed; answers fall back to built-in mode');
-}
+	 const m=activeModel();const dot=document.getElementById('modeldot');
+	 const lbl=document.getElementById('modelbtnlabel');const btn=document.getElementById('modelbtn');
+	 if(!m){lbl.textContent='AI: built-in';dot.className='mdot';btn.title='The assistant runs in built-in mode';return;}
+	 const displayName=m.label||m.key;
+	 lbl.textContent='AI: '+displayName;
+	 dot.className='mdot '+(m.available?'ok':'bad');
+	 btn.title=m.available?('AI model: '+displayName+' - ready')
+	  :('AI model: '+displayName+' - NOT installed; answers fall back to built-in mode');
+	}
 async function loadModels(refresh){
  try{
   const r=await fetch('/assistant/models'+(refresh?'?refresh=true':''));
@@ -975,8 +1106,15 @@ function renderModelList(){
   c.className='mcard'+(m.active?' active':'');
   c.style.animationDelay=(i*0.06)+'s';c.id='mcard-'+m.key;
   const top=document.createElement('div');top.className='mtop';
-  const nm=document.createElement('div');nm.className='mname';nm.textContent=m.key;
-  top.appendChild(nm);
+  /* product name in front, machine key underneath: operators need the
+     identifier, everyone else reads the name */
+  const names=document.createElement('div');
+  const nm=document.createElement('div');nm.className='mname';
+  nm.textContent=(m.label||m.key);
+  names.appendChild(nm);
+  if(m.label){const sub=document.createElement('div');sub.className='mkey';
+   sub.textContent=m.key;names.appendChild(sub);}
+  top.appendChild(names);
   const chip=document.createElement('span');
   if(m.active&&m.available){chip.className='mchip live';chip.textContent='ACTIVE';}
   else if(m.active){chip.className='mchip down';chip.textContent='ACTIVE \u00B7 NOT INSTALLED';}
@@ -1239,6 +1377,112 @@ function showError(msg){
  document.getElementById('pa').classList.add('hidden');
  document.getElementById('raw').textContent='';
 }
+
+/* ---- admin panel: site health & statistics ---- */
+function openAdminPanel(){
+ const key=apiKey();
+ if(!key){alert('Admin API key required. Enter it in the model panel first.');openModelPanel();return;}
+ document.getElementById('adminov').classList.add('open');
+ loadAdminStats();
+}
+function closeAdminPanel(){
+ document.getElementById('adminov').classList.remove('open');
+ document.getElementById('adminnote').textContent='';
+}
+async function loadAdminStats(){
+ const box=document.getElementById('admincontent');
+ box.innerHTML='<div class="loadhint" style="justify-content:center"><span class="waves"><i></i><i></i><i></i><i></i></span><span data-tr>Loading...</span></div>';
+ const key=apiKey();
+ try{
+  const r=await fetch('/admin/stats',{headers:key?{'X-API-Key':key}:{}});
+  if(r.status===401||r.status===403){
+   box.innerHTML='<div class="mpsub" style="color:#C94F4F">Admin key required or invalid.</div>';
+   return;
+  }
+  const d=await r.json();
+  renderAdminStats(d);
+ }catch(e){
+  box.innerHTML='<div class="mpsub" style="color:#C94F4F">Failed to load: '+e+'</div>';
+ }
+}
+function refreshAdminStats(){loadAdminStats();}
+function adminNote(t){document.getElementById('adminnote').textContent=t||'';}
+function renderAdminStats(d){
+ const box=document.getElementById('admincontent');
+ box.innerHTML='';
+ /* API overview */
+ const api=d.api||{};
+ addAdminCard(box,'API',[
+  {k:'Version',v:api.version||'-'},
+  {k:'Region',v:api.region||'-'},
+  {k:'Species',v:api.species_count||'-'},
+  {k:'Uptime',v:api.uptime_human||'-'},
+ ]);
+ /* Services */
+ const svc=d.services||{};
+ const svcRows=[];
+ for(const [name,info] of Object.entries(svc)){
+  if(name==='docker')continue;
+  const v=typeof info==='object'?info.status:info;
+  const cls=v==='running'||v==='connected'?'ok':(v==='error'?'bad':'warn');
+  svcRows.push({k:name.charAt(0).toUpperCase()+name.slice(1),v:v||'-',cls});
+  if(name==='ollama'&&info.models&&info.models.length){
+   svcRows.push({k:'  Models',v:info.models.join(', '),cls:''});
+  }
+ }
+ addAdminCard(box,'Services',svcRows);
+ /* Docker */
+ if(svc.docker){
+  const dockerRows=[];
+  for(const [name,info] of Object.entries(svc.docker)){
+   if(typeof info==='object'){
+    const cls=info.status==='running'?'ok':(info.status==='exited'?'warn':'');
+    dockerRows.push({k:name,v:info.status+' ('+(info.image||'')+')',cls});
+   }
+  }
+  if(dockerRows.length)addAdminCard(box,'Docker',dockerRows);
+ }
+ /* System */
+ const sys=d.system||{};
+ addAdminCard(box,'System',[
+  {k:'CPU',v:sys.cpu_percent!==undefined?sys.cpu_percent+'%':'-'},
+  {k:'Memory',v:sys.memory?sys.memory.used_percent+'% ('+sys.memory.available_gb+' GB free)':'-'},
+  {k:'Disk',v:sys.disk?sys.disk.used_percent+'% ('+sys.disk.free_gb+' GB free)':'-'},
+ ]);
+ /* Rate limits */
+ const rl=d.rate_limits||{};
+ if(Object.keys(rl).length){
+  const rlRows=[];
+  for(const [bucket,stats] of Object.entries(rl)){
+   rlRows.push({k:bucket,v:stats.clients+' clients, '+stats.total_hits+' hits',cls:''});
+  }
+  addAdminCard(box,'Rate Limits (current window)',rlRows);
+ }
+ /* Assistant */
+ const asst=d.assistant||{};
+ addAdminCard(box,'AI Assistant',[
+  {k:'Active Model',v:asst.active_model||'-'},
+  {k:'Backend',v:asst.backend||'-'},
+  {k:'Available',v:asst.available? 'yes':'no',cls:asst.available?'ok':'bad'},
+  {k:'Models Configured',v:asst.models_count!=null?asst.models_count:'-'},
+ ]);
+ /* Config */
+ const cfg=d.config||{};
+ addAdminCard(box,'Config',[
+  {k:'Rate Limit Buckets',v:(cfg.rate_limit_buckets||[]).join(', ')}
+ ]);
+}
+function addAdminCard(host,title,rows){
+ const card=document.createElement('div');card.className='admcard';
+ const h=document.createElement('h4');h.textContent=title;card.appendChild(h);
+ rows.forEach(function(r){
+  const row=document.createElement('div');row.className='admrow';
+  const k=document.createElement('span');k.className='k';k.textContent=r.k;
+  const v=document.createElement('span');v.className='v '+(r.cls||'');v.textContent=r.v;
+  row.appendChild(k);row.appendChild(v);card.appendChild(row);
+ });
+ host.appendChild(card);
+}
 </script></body></html>"""
 
 
@@ -1247,16 +1491,24 @@ def _telemetry_snapshot(eng, lat: float, lon: float) -> dict:
     attached to advisories so the AI assistant analyses the FULL station
     data - pressure, humidity, wave period, currents - not just the
     scoring inputs. None values are dropped to keep prompts lean."""
+    from .ingestion import TelemetryField
     data = eng.ingestion.open_meteo.fetch_points([(lat, lon)], hours=24)
     env = data.get((lat, lon), {})
 
-    def rnd(key: str, digits: int = 1):
+    def get_val(key: str):
+        """Extract value from TelemetryField or raw value (backward compat)."""
         v = env.get(key)
+        if isinstance(v, TelemetryField):
+            return v.value
+        return v
+
+    def rnd(key: str, digits: int = 1):
+        v = get_val(key)
         return round(v, digits) if v is not None else None
 
     snapshot = {
-        "wind_speed_ms": env.get("wind_speed_10m"),
-        "wind_gusts_ms": env.get("wind_gusts_10m"),
+        "wind_speed_ms": get_val("wind_speed_10m"),
+        "wind_gusts_ms": get_val("wind_gusts_10m"),
         "wind_direction_deg": rnd("wind_direction_10m", 0),
         "surface_pressure_hpa": rnd("surface_pressure"),
         "air_temperature_c": rnd("temperature_2m"),
@@ -1303,6 +1555,7 @@ def _station_status(cfg) -> dict:
 # --------------------------------------------------------------------------- #
 def create_app(cfg: Config | None = None) -> FastAPI:
     cfg = cfg or load_config()
+    _START_TIME = time.monotonic()   # process start, for the admin uptime
     api_cfg = cfg.raw.get("api", {})
     translations = TranslationService()
     sec_cfg = cfg.raw.get("security", {}) or {}
@@ -1321,6 +1574,7 @@ def create_app(cfg: Config | None = None) -> FastAPI:
 
     # Security: rate limiting + headers + body cap, then CORS lockdown.
     limiter = RateLimiter(sec_cfg.get("rate_limits"))
+    app.state.rate_limiter = limiter
     app.add_middleware(SecurityMiddleware, cfg=cfg, limiter=limiter)
     add_cors(app, cfg)
 
@@ -1345,7 +1599,8 @@ def create_app(cfg: Config | None = None) -> FastAPI:
     def _db_factory():
         import psycopg
         dsn = cfg.database_url.replace("postgresql+psycopg://", "postgresql://")
-        return psycopg.connect(dsn)
+        # short connect timeout: a down registry must not stall the request
+        return psycopg.connect(dsn, connect_timeout=3)
 
     @functools.lru_cache(maxsize=1)
     def engine() -> AdvisoryEngine:
@@ -1501,14 +1756,59 @@ def create_app(cfg: Config | None = None) -> FastAPI:
         pressure, air temperature, humidity), oceanographic (SST, significant
         wave height, wave period/direction, surface current velocity/
         direction, salinity when a source provides it) and station health
-        (GPS, UTC, battery/solar when an instrumented node is configured)."""
+        (GPS, UTC, battery/solar when an instrumented node is configured).
+
+        Each field now includes provenance: fetched_at (when we retrieved it),
+        age_hours (hours since fetch), and stale (served from cache)."""
         data = engine().ingestion.open_meteo.fetch_points([(lat, lon)],
                                                           hours=24)
         env = data.get((lat, lon), {})
 
-        def rnd(key: str, digits: int = 1):
+        def get_val(key: str):
+            """Extract value from TelemetryField or raw value (backward compat)."""
             v = env.get(key)
+            if isinstance(v, TelemetryField):
+                return v.value
+            return v
+
+        def get_age(key: str):
+            """Extract age_hours from TelemetryField."""
+            v = env.get(key)
+            if isinstance(v, TelemetryField):
+                return round(v.age_hours, 2)
+            return None
+
+        def get_stale(key: str):
+            """Extract stale flag from TelemetryField."""
+            v = env.get(key)
+            if isinstance(v, TelemetryField):
+                return v.stale
+            return None
+
+        def get_fetched_at(key: str):
+            """Extract fetched_at from TelemetryField."""
+            v = env.get(key)
+            if isinstance(v, TelemetryField):
+                return v.fetched_at
+            return None
+
+        def rnd(key: str, digits: int = 1):
+            v = get_val(key)
             return round(v, digits) if v is not None else None
+
+        # Build per-field provenance info
+        field_provenance = {}
+        for key in ("wind_speed_10m", "wind_gusts_10m", "wind_direction_10m",
+                    "surface_pressure", "temperature_2m", "relative_humidity_2m",
+                    "sea_surface_temperature", "wave_height", "wave_period",
+                    "wave_direction", "ocean_current_velocity", "ocean_current_direction"):
+            v = env.get(key)
+            if isinstance(v, TelemetryField):
+                field_provenance[key] = {
+                    "fetched_at": v.fetched_at,
+                    "age_hours": round(v.age_hours, 2),
+                    "stale": v.stale,
+                }
 
         # per-group provenance: which provider served what, and what is
         # missing, so the dashboard can show where the data comes from
@@ -1519,7 +1819,7 @@ def create_app(cfg: Config | None = None) -> FastAPI:
                                        "wind_direction_10m",
                                        "surface_pressure", "temperature_2m",
                                        "relative_humidity_2m")
-                           if env.get(k) is not None],
+                           if get_val(k) is not None],
             },
             "sea": {
                 "provider": "Open-Meteo marine API",
@@ -1527,7 +1827,7 @@ def create_app(cfg: Config | None = None) -> FastAPI:
                                        "wave_period", "wave_direction",
                                        "ocean_current_velocity",
                                        "ocean_current_direction")
-                           if env.get(k) is not None],
+                           if get_val(k) is not None],
             },
             "salinity": {
                 "provider": None,   # not wired: Copernicus/ERDDAP source
@@ -1539,11 +1839,12 @@ def create_app(cfg: Config | None = None) -> FastAPI:
                 "position": cfg.raw.get("station", {}).get("position"),
             },
         }
+        retrieved_at = datetime.now(timezone.utc).isoformat()
         return {
             "position": {"lat": lat, "lon": lon},
             # meteorological
-            "wind_speed_ms": env.get("wind_speed_10m"),
-            "wind_gusts_ms": env.get("wind_gusts_10m"),
+            "wind_speed_ms": get_val("wind_speed_10m"),
+            "wind_gusts_ms": get_val("wind_gusts_10m"),
             "wind_direction_deg": rnd("wind_direction_10m", 0),
             "surface_pressure_hpa": rnd("surface_pressure"),
             "air_temperature_c": rnd("temperature_2m"),
@@ -1556,10 +1857,49 @@ def create_app(cfg: Config | None = None) -> FastAPI:
             "ocean_current_velocity_kmh": rnd("ocean_current_velocity", 2),
             "ocean_current_direction_deg": rnd("ocean_current_direction", 0),
             "salinity_psu": None,  # no open source wired yet; shown as n/a
+            # provenance (when we actually fetched the data)
+            "retrieved_at": retrieved_at,
+            "field_provenance": field_provenance,
             # station health + provenance
             "station": _station_status(cfg),
             "sources": sources,
-            "observed_at": datetime.now(timezone.utc).isoformat(),
+            "observed_at": retrieved_at,
+        }
+
+    @app.get("/alerts")
+    def alerts(lat: float = Query(...), lon: float = Query(...),
+               radius_km: float = Query(200, ge=1, le=1000)) -> dict:
+        """Security/disaster alerts for a location (IMD cyclones, INCOIS tsunami,
+        NDMA multi-hazard, CAP India, SAC satellite alerts).
+
+        Returns alerts sorted by severity and urgency (most critical first).
+        Each alert includes: id, title, description, severity, urgency,
+        certainty, event_type, affected areas, issued_at, expires_at, source,
+        source_url, and localised languages."""
+        alert_items = engine().ingestion.alerts_for_location(lat, lon, radius_km)
+        return {
+            "position": {"lat": lat, "lon": lon},
+            "radius_km": radius_km,
+            "retrieved_at": datetime.now(timezone.utc).isoformat(),
+            "count": len(alert_items),
+            "alerts": [
+                {
+                    "id": a.id,
+                    "title": a.title,
+                    "description": a.description,
+                    "severity": a.severity,
+                    "urgency": a.urgency,
+                    "certainty": a.certainty,
+                    "event_type": a.event_type,
+                    "areas": a.areas,
+                    "issued_at": a.issued_at,
+                    "expires_at": a.expires_at,
+                    "source": a.source,
+                    "source_url": a.source_url,
+                    "languages": a.languages,
+                }
+                for a in alert_items
+            ],
         }
 
     @app.get("/fish-suggestions")
@@ -1719,6 +2059,184 @@ def create_app(cfg: Config | None = None) -> FastAPI:
     def health() -> dict:
         return {"status": "ok", "region": cfg.region["name"],
                 "species_count": len(cfg.species)}
+
+    # ------------------------------------------------------------------ #
+    # admin dashboard: site health & statistics (requires admin role)
+    # ------------------------------------------------------------------ #
+    _admin_cache: dict = {"ts": 0.0, "payload": None, "uptime": 0.0}
+
+    @app.get("/admin/stats")
+    def admin_stats(role: str = Depends(require_role(cfg, "admin"))) -> dict:
+        """System health and statistics for administrators.
+        Requires X-API-Key with admin role. Probes are cached for 15 s so
+        repeated dashboard opens do not re-hit every backend."""
+        import time
+
+        # API uptime
+        api_uptime_s = time.monotonic() - _START_TIME
+        now = time.monotonic()
+        cached = _admin_cache["payload"]
+        if (cached is not None and now - _admin_cache["ts"] < 15.0):
+            out = json.loads(json.dumps(cached))       # shallow copy
+            out["api"]["uptime_seconds"] = round(api_uptime_s)
+            out["api"]["uptime_human"] = _human_uptime(api_uptime_s)
+            out["cached"] = True
+            return out
+
+        def _tcp_open(host: str, port: int, timeout: float = 0.6) -> bool:
+            """Fast reachability pre-check: avoids psycopg's multi-address
+            connect retries (localhost -> ::1 then 127.0.0.1, ~15 s) when
+            the container is simply not running."""
+            import socket
+            try:
+                with socket.create_connection((host, port), timeout=timeout):
+                    return True
+            except OSError:
+                return False
+
+        # Ollama status
+        ollama_status = "unknown"
+        ollama_models = []
+        try:
+            with httpx.Client(timeout=3.0) as client:
+                r = client.get("http://127.0.0.1:11434/api/tags")
+                if r.status_code == 200:
+                    ollama_status = "running"
+                    ollama_models = [m.get("name", "") for m in r.json().get("models", [])]
+                else:
+                    ollama_status = "error"
+        except Exception:
+            ollama_status = "unreachable"
+
+        # Database status
+        db_status = "unreachable" if not _tcp_open("127.0.0.1", 5432) else "unknown"
+        if db_status == "unknown":
+            try:
+                with _db_factory() as conn, conn.cursor() as cur:
+                    cur.execute("SELECT 1")
+                    cur.fetchone()
+                    db_status = "connected"
+            except Exception as exc:
+                db_status = "unreachable"
+                log.info("admin probe: db unavailable (%s)", exc)
+
+        # Qdrant status (TCP pre-check first: "localhost" would otherwise
+        # burn ~4 s on the IPv6 connect before falling back to IPv4)
+        qdrant_status = "unreachable" if not _tcp_open("127.0.0.1", 6333) else "unknown"
+        qdrant_collections = []
+        if qdrant_status == "unknown":
+            try:
+                with httpx.Client(timeout=3.0) as client:
+                    r = client.get("http://127.0.0.1:6333/collections")
+                    if r.status_code == 200:
+                        qdrant_status = "running"
+                        qdrant_collections = [c.get("name", "") for c in r.json().get("result", {}).get("collections", [])]
+                    else:
+                        qdrant_status = "error"
+            except Exception:
+                qdrant_status = "unreachable"
+
+        # Docker container status via the CLI (no extra Python dependency;
+        # fails fast when Docker Desktop is not running)
+        docker_containers = {}
+        try:
+            import subprocess
+            out = subprocess.run(
+                ["docker", "ps", "-a", "--format",
+                 "{{.Names}}|{{.State}}|{{.Image}}"],
+                capture_output=True, text=True, timeout=5)
+            if out.returncode == 0:
+                for line in out.stdout.strip().splitlines():
+                    parts = line.split("|")
+                    if len(parts) >= 2:
+                        docker_containers[parts[0]] = {
+                            "status": parts[1],
+                            "image": parts[2] if len(parts) > 2 else "unknown",
+                        }
+            else:
+                docker_containers = {"note": "docker CLI unavailable"}
+        except Exception:
+            docker_containers = {"note": "Docker not running"}
+
+        # Rate limiter stats
+        rate_limit_stats = {}
+        _lim = app.state.rate_limiter
+        if hasattr(_lim, '_hits'):
+            for (bucket, _client), hits in _lim._hits.items():
+                if bucket not in rate_limit_stats:
+                    rate_limit_stats[bucket] = {"clients": 0, "total_hits": 0}
+                rate_limit_stats[bucket]["clients"] += 1
+                rate_limit_stats[bucket]["total_hits"] += len(hits)
+
+        # System resources (optional: requires psutil)
+        system = {}
+        try:
+            import psutil
+            mem = psutil.virtual_memory()
+            disk = psutil.disk_usage("/")
+            cpu_pct = psutil.cpu_percent(interval=0.1)
+            system = {
+                "cpu_percent": cpu_pct,
+                "memory": {
+                    "total_gb": round(mem.total / 1024**3, 1),
+                    "available_gb": round(mem.available / 1024**3, 1),
+                    "used_percent": mem.percent,
+                },
+                "disk": {
+                    "total_gb": round(disk.total / 1024**3, 1),
+                    "free_gb": round(disk.free / 1024**3, 1),
+                    "used_percent": round(disk.used / disk.total * 100, 1),
+                },
+            }
+        except ImportError:
+            system = {"note": "psutil not installed - system metrics unavailable"}
+
+        # Assistant status
+        assistant_status = assistant().status()
+
+        payload = {
+            "api": {
+                "uptime_seconds": round(api_uptime_s),
+                "uptime_human": _human_uptime(api_uptime_s),
+                "version": cfg.raw.get("api", {}).get("version", "1.0.0"),
+                "region": cfg.region["name"],
+                "species_count": len(cfg.species),
+            },
+            "services": {
+                "ollama": {"status": ollama_status, "models": ollama_models},
+                "database": {"status": db_status},
+                "qdrant": {"status": qdrant_status, "collections": qdrant_collections},
+                "docker": docker_containers,
+            },
+            "system": system,
+            "rate_limits": rate_limit_stats,
+            "assistant": dict(assistant_status,
+                              models_count=len(
+                                  cfg.raw.get("assistant", {}).get("models", {})),
+                              registry=list(
+                                  cfg.raw.get("assistant", {}).get("models", {}).keys())),
+            "config": {
+                "active_model": assistant_status.get("active_model"),
+                "rate_limit_buckets": list(cfg.raw.get("security", {}).get("rate_limits", {}).keys()),
+            },
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "cached": False,
+        }
+        _admin_cache.update(ts=now, payload=payload)
+        return payload
+
+    def _human_uptime(seconds: float) -> str:
+        """Format uptime as human-readable string."""
+        days = int(seconds // 86400)
+        hours = int((seconds % 86400) // 3600)
+        minutes = int((seconds % 3600) // 60)
+        secs = int(seconds % 60)
+        parts = []
+        if days: parts.append(f"{days}d")
+        if hours: parts.append(f"{hours}h")
+        if minutes: parts.append(f"{minutes}m")
+        parts.append(f"{secs}s")
+        return " ".join(parts)
 
     return app
 

@@ -470,8 +470,17 @@ class AssistantService:
             reason = advisory.get("block_reason") or "not allowed today"
             if _ENCOURAGEMENT.search(answer) or word.lower() not in answer.lower():
                 answer = (f"STOP - {reason}.\n\n" + answer)
-        elif word.lower() not in answer.lower() and cls == "PROCEED":
-            pass  # summaries lead with the class; Q&A need not repeat it
+        elif word.lower() not in answer.lower():
+            # For all allowed classes (PROCEED, PROCEED WITH CAUTION,
+            # DELAY OR RELOCATE), ensure the correct class word appears
+            # in the answer. If the model contradicts (e.g. says "safe"
+            # for DELAY OR RELOCATE), prepend the authoritative class.
+            if _ENCOURAGEMENT.search(answer) and cls != "PROCEED":
+                answer = (f"{word} - conditions require caution.\n\n" + answer)
+            elif cls == "PROCEED":
+                pass  # summaries lead with the class; Q&A need not repeat
+            else:
+                answer = (f"{word}.\n\n" + answer)
         return answer
 
     # ------------------------------------------------------------------ #

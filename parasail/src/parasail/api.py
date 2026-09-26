@@ -1017,7 +1017,7 @@ function renderAiSummary(d){
  }else{host.textContent=s.summary;}
  localize(document.getElementById('aisum_src'),
   s.backend==='template'
-   ?'deterministic summary (no AI needed for this one)'
+   ?'plain-language advisory from the rules engine'
    :('AI summary \u00B7 '+(s.model||'').split('/').pop()+(s.cached?' \u00B7 cached':'')+' \u00B7 runs locally, no cloud API'));
 }
 

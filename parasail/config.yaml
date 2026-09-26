@@ -314,16 +314,16 @@ ingestion:
   open_meteo:
     base: https://api.open-meteo.com/v1
     marine_base: https://marine-api.open-meteo.com/v1
-    freshness_hours: 6
+    freshness_hours: 0           # 0 = no cache, always live fetch
     cache_dir: .cache/open-meteo
   copernicus:
-    freshness_hours: 30
+    freshness_hours: 0
     cache_dir: .cache/copernicus
   erddap:
     base: https://coastwatch.noaa.gov/erddap
-    freshness_hours: 30
+    freshness_hours: 0
     cache_dir: .cache/erddap
-  offline_policy: serve_cached_with_age_flag   # never fail silently
+  offline_policy: fail_on_stale   # fail rather than serve cached data
 
 # --- persistence -----------------------------------------------------------
 database:
@@ -363,8 +363,9 @@ security:
     - http://127.0.0.1:8000
   api_keys:                          # key stored as SHA-256 hash (scripts/generate_api_key.py)
     - {name: local-admin, key_hash: 7c757692e630973c885f85a393fe142ad7de6066908f38a9d9fab8fe1b8a985a, role: admin}
-    - {name: dev-test, key: "dev-admin-key-12345", role: admin}  # dev convenience - plaintext key
-                                       # e.g. {name: ops, key_hash: <sha256>, role: admin}
+    - {name: dev-team, key_hash: 208ebdc4b185a981c7b483496bb489db4da8d599927496cc00d670922503b3e7, role: admin}
+    # Developer: run `python scripts/generate_api_key.py --name your-name --role admin`
+    # to create your own key. Paste the hash here or set PARASAIL_API_KEYS env var.
   public_docs: true                   # set false in production to hide /docs
 
 api:

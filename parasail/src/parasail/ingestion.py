@@ -75,13 +75,22 @@ class TelemetryField:
 # Cached fetch core
 # --------------------------------------------------------------------------- #
 class CachedFetcher:
-    """HTTP GET with disk cache + freshness contract + offline fallback."""
+    """HTTP GET with disk cache + freshness contract + offline fallback.
 
-    def __init__(self, source: str, cache_dir: str, freshness_hours: float):
+    Modes controlled by `freshness_hours` and `offline_policy`:
+      - freshness_hours == 0: no cache, always live fetch
+      - offline_policy == "fail_on_stale": raise on live fetch failure
+      - offline_policy == "serve_cached_with_age_flag" (default): graceful fallback
+    """
+
+    def __init__(self, source: str, cache_dir: str, freshness_hours: float,
+                 offline_policy: str = "serve_cached_with_age_flag"):
         self.source = source
         self.cache = Path(cache_dir)
         self.cache.mkdir(parents=True, exist_ok=True)
         self.freshness = timedelta(hours=freshness_hours)
+        self.offline_policy = offline_policy
+        self.use_cache = freshness_hours > 0
 
     def _key(self, url: str, params: dict) -> Path:
         blob = json.dumps({"url": url, "params": params}, sort_keys=True)
@@ -90,30 +99,45 @@ class CachedFetcher:
     def fetch(self, url: str, params: dict) -> tuple[dict, float, bool]:
         """Return (payload, age_hours, served_from_cache)."""
         cache_file = self._key(url, params)
+
+        # If caching disabled, skip straight to live fetch
+        if not self.use_cache:
+            return self._live_fetch(url, params, cache_file)
+
+        # Check cache first
         if cache_file.exists():
             blob = json.loads(cache_file.read_text(encoding="utf-8"))
             age = (time.time() - blob["fetched_at"]) / 3600.0
             if age <= self.freshness.total_seconds() / 3600.0:
                 return blob["payload"], age, True
 
+        # Live fetch
         try:
-            with httpx.Client(timeout=API_TIMEOUT_S) as client:
-                resp = client.get(url, params=params)
-                resp.raise_for_status()
-                payload = resp.json()
+            return self._live_fetch(url, params, cache_file)
+        except (httpx.HTTPError, json.JSONDecodeError) as exc:
+            log.warning("%s live fetch failed (%s)", self.source, exc)
+            if self.offline_policy == "fail_on_stale":
+                raise
+            if cache_file.exists():
+                blob = json.loads(cache_file.read_text(encoding="utf-8"))
+                age = (time.time() - blob["fetched_at"]) / 3600.0
+                log.warning("%s serving stale cache (age=%.2fh) per offline_policy",
+                            self.source, age)
+                return blob["payload"], age, True
+            raise
+
+    def _live_fetch(self, url: str, params: dict, cache_file: Path) -> tuple[dict, float, bool]:
+        """Perform live HTTP fetch and write to cache."""
+        with httpx.Client(timeout=API_TIMEOUT_S) as client:
+            resp = client.get(url, params=params)
+            resp.raise_for_status()
+            payload = resp.json()
+        if self.use_cache:
             cache_file.write_text(
                 json.dumps({"fetched_at": time.time(), "payload": payload}),
                 encoding="utf-8",
             )
-            return payload, 0.0, False
-        except (httpx.HTTPError, json.JSONDecodeError) as exc:
-            log.warning("%s live fetch failed (%s); falling back to cache",
-                        self.source, exc)
-            if cache_file.exists():
-                blob = json.loads(cache_file.read_text(encoding="utf-8"))
-                age = (time.time() - blob["fetched_at"]) / 3600.0
-                return blob["payload"], age, True
-            raise
+        return payload, 0.0, False
 
 
 # --------------------------------------------------------------------------- #
@@ -137,7 +161,8 @@ class OpenMeteoSource:
     def __init__(self, cfg: Config):
         conf = cfg.ingestion["open_meteo"]
         self.fetcher = CachedFetcher("open-meteo", conf["cache_dir"],
-                                     conf["freshness_hours"])
+                                     conf["freshness_hours"],
+                                     cfg.ingestion.get("offline_policy", "serve_cached_with_age_flag"))
         self.base = conf["base"]
         self.marine_base = conf.get(
             "marine_base", "https://marine-api.open-meteo.com/v1")
@@ -280,7 +305,8 @@ class ErddapSource:
     def __init__(self, cfg: Config):
         conf = cfg.ingestion["erddap"]
         self.fetcher = CachedFetcher("erddap", conf["cache_dir"],
-                                     conf["freshness_hours"])
+                                     conf["freshness_hours"],
+                                     cfg.ingestion.get("offline_policy", "serve_cached_with_age_flag"))
         self.base = conf["base"]
 
     def fetch_grid(self, dataset: str, variable: str, bbox: list[float],
